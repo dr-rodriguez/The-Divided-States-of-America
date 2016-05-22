@@ -68,3 +68,21 @@ def grab_user_tweets(screen_name, max_tweets=3200, exclude_replies='true', inclu
         page += 1
 
     return df
+
+
+def print_dtm(dtm, tweet, num):
+    """
+    Quick function to print out tweet and document term matrix
+
+    :param dtm: document term matrix
+    :param tweet: tweet text array
+    :param num: number to show
+    :return: None
+    """
+    for key in dtm[num].keys():
+        if dtm[num][key] > 0:
+            print('{}: {}'.format(key, dtm[num][key]))
+    print(tweet[num])
+
+    return
+
