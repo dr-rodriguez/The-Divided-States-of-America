@@ -48,9 +48,10 @@ for tweet in df_tweets:
 # Quickly look at some results
 print_dtm(dtm, df_tweets, 42)
 
-# TODO: Pass common terms to PCA, retaining components that describe ~70% of the variance
+# Assign label (second array) for Hillary/Trump tweets
+label_array = [0]*len(df_hillary) + [1]*len(df_trump)
 
-# TODO: Assign label (second array) for Hillary/Trump tweets
+# TODO: Pass common terms to PCA, retaining components that describe ~70% of the variance
 
 # TODO: Create randomized index, split 80-20 into training/test sets
 
