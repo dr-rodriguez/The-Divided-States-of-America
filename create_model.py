@@ -1,12 +1,14 @@
 # Script to carry out my model processing
 
-from helper_functions import grab_user_tweets, print_dtm
+from helper_functions import grab_user_tweets, print_dtm, make_plot
 import pandas as pd
 from collections import Counter
 import string
 from nltk.corpus import stopwords
 from nltk.tokenize import wordpunct_tokenize
 from nltk.stem.porter import PorterStemmer
+from sklearn.decomposition import PCA
+import numpy as np
 
 # Load most recent 2000 tweets from Hillary Clinton and Donald Trump
 df_hillary = grab_user_tweets('HillaryClinton', 200)
@@ -49,9 +51,21 @@ for tweet in df_tweets:
 print_dtm(dtm, df_tweets, 42)
 
 # Assign label (second array) for Hillary/Trump tweets
-label_array = [0]*len(df_hillary) + [1]*len(df_trump)
+label_array = np.array([0]*len(df_hillary) + [1]*len(df_trump))
 
-# TODO: Pass common terms to PCA, retaining components that describe ~70% of the variance
+# Pass common terms to PCA, retaining components that describe ~70% of the variance
+df_dtm = pd.DataFrame(dtm, columns=top_words.keys())
+pca = PCA(n_components=0.7)
+pca.fit(df_dtm)
+pcscores = pd.DataFrame(pca.transform(df_dtm))
+pcscores.columns = ['PC'+str(i+1) for i in range(pcscores.shape[1])]
+loadings = pd.DataFrame(pca.components_, columns=top_words.keys())
+load_squared = loadings.transpose()**2
+load_squared.columns = ['PC'+str(i+1) for i in range(pcscores.shape[1])]
+
+# Exploratory plots
+make_plot(pcscores, label_array, 0, 1)
+make_biplot(pcscores, label_array, loadings, 0, 1)
 
 # TODO: Create randomized index, split 80-20 into training/test sets
 
