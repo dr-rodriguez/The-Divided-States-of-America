@@ -50,11 +50,11 @@ def grab_user_tweets(screen_name, max_tweets=3200, exclude_replies='true', inclu
     url = 'https://api.twitter.com/1.1/statuses/user_timeline.json'
     for i in range(max_pages):
         if page == 0:
-            params = {'screen_name': screen_name, 'count': count,
+            params = {'screen_name': screen_name, 'count': count, 'lang': 'en',
                       'exclude_replies': exclude_replies, 'include_rts': include_rts}
         else:
             max_id = data[-1]['id'] - 1
-            params = {'screen_name': screen_name, 'count': count,
+            params = {'screen_name': screen_name, 'count': count, 'lang': 'en',
                       'exclude_replies': exclude_replies, 'include_rts': include_rts,
                       'max_id': max_id}
 
@@ -89,23 +89,28 @@ def print_dtm(dtm, tweet, num):
 
 
 def make_plot(pcarray, labels, xval=0, yval=1):
-    plt.plot(pcarray.icol(xval)[labels == 0], pcarray.icol(yval)[labels == 0], 'bo',
+    plt.figure()
+    plt.plot(pcarray.iloc[:, xval][labels == 0], pcarray.iloc[:, yval][labels == 0], 'bo',
              alpha=0.6, label='Hillary Clinton')
-    plt.plot(pcarray.icol(xval)[labels == 1], pcarray.icol(yval)[labels == 1], 'ro',
+    plt.plot(pcarray.iloc[:, xval][labels == 1], pcarray.iloc[:, yval][labels == 1], 'ro',
              alpha=0.6, label='Donald Trump')
     plt.xlabel('PC{}'.format(xval + 1))
     plt.ylabel('PC{}'.format(yval + 1))
     plt.legend(loc='best', numpoints=1)
+    plt.show()
 
 
 def make_biplot(pcscores, labels, loadings, xval=0, yval=1, max_arrow=0.2):
+    plt.figure()
     n = loadings.shape[1]
-    scalex = 1.0 / (pcscores.icol(xval).max() - pcscores.icol(xval).min())
-    scaley = 1.0 / (pcscores.icol(yval).max() - pcscores.icol(yval).min())
-    plt.plot(pcscores.icol(xval)[labels == 0] * scalex, pcscores.icol(yval)[labels == 0] * scaley,
+    scalex = 1.0 / (pcscores.iloc[:, xval].max() - pcscores.iloc[:, xval].min())  # Rescaling to be from -1 to +1
+    scaley = 1.0 / (pcscores.iloc[:, yval].max() - pcscores.iloc[:, yval].min())
+
+    plt.plot(pcscores.iloc[:, xval][labels == 0] * scalex, pcscores.iloc[:, yval][labels == 0] * scaley,
              'bo', alpha=0.6, label='Hillary Clinton')
-    plt.plot(pcscores.icol(xval)[labels == 1] * scalex, pcscores.icol(yval)[labels == 1] * scaley,
+    plt.plot(pcscores.iloc[:, xval][labels == 1] * scalex, pcscores.iloc[:, yval][labels == 1] * scaley,
              'ro', alpha=0.6, label='Donald Trump')
+
     for i in range(n):
         # Only plot the longer ones
         length = sqrt(loadings.iloc[xval, i]**2 + loadings.iloc[yval, i]**2)
@@ -122,3 +127,4 @@ def make_biplot(pcscores, labels, loadings, xval=0, yval=1, max_arrow=0.2):
     plt.ylabel('PC{}'.format(yval+1))
     plt.legend(loc='best', numpoints=1)
     plt.grid()
+    plt.show()
