@@ -1,6 +1,6 @@
 # Script to carry out my model processing
 
-from helper_functions import grab_user_tweets
+from helper_functions import grab_user_tweets, print_dtm
 import pandas as pd
 from collections import Counter
 import string
@@ -19,13 +19,34 @@ str_list = ' '.join([tweet for tweet in df_tweets])
 
 porter = PorterStemmer()  # use stemming
 stop_words = set(stopwords.words('english'))  # remove stopwords
-stop_words.update([s for s in string.punctuation] + [u'\u2014', u'\u2019', u'\u201c', u'\xf3', u'\u201d'])
+stop_words.update([s for s in string.punctuation] +
+                  [u'\u2014', u'\u2019', u'\u201c', u'\xf3', u'\u201d', u'\u2014@', u'://', u'!"', u'"@',
+                   u'."', u'.@', u'co'])
 
 words = Counter([porter.stem(i.lower()) for i in wordpunct_tokenize(str_list)
                  if i.lower() not in stop_words and not i.lower().startswith('http')])
-words100 = dict(words.most_common(100))
+top_words = dict(words.most_common(100))
 
-# TODO: Check each tweet against the most common terms
+# Check each tweet against the most common terms
+dtm = []
+for tweet in df_tweets:
+
+    # Make empty row
+    newrow = dict()
+    for term in top_words.keys():
+        newrow[term] = 0
+
+    words = [porter.stem(i.lower()) for i in wordpunct_tokenize(tweet)
+             if i.lower() not in stop_words and not i.lower().startswith('http')]
+
+    for word in words:
+        if word in top_words.keys():
+            newrow[word] += 1
+
+    dtm.append(newrow)
+
+# Quickly look at some results
+print_dtm(dtm, df_tweets, 42)
 
 # TODO: Pass common terms to PCA, retaining components that describe ~70% of the variance
 
