@@ -85,7 +85,19 @@ ax.set_xticks(ind + width)
 plt.xticks(ind + width, top_25.keys(), rotation='vertical')
 plt.tight_layout()
 
-# TODO: Create randomized index, split 80-20 into training/test sets
+# Create randomized index, split 80-20 into training/test sets
+ind = np.arange(len(df_tweets))
+np.random.shuffle(ind)
+
+# Shuffle arrays
+pcscores = pcscores.iloc[ind]
+label_array = label_array[ind]
+
+cut = int(len(ind)*0.8)
+df_train = pcscores.iloc[:cut]
+df_test = pcscores.iloc[cut:]
+train_label = label_array[:cut]
+test_label = label_array[cut:]
 
 # TODO: Run SCV on training set
 
