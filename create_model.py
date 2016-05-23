@@ -1,6 +1,6 @@
 # Script to carry out my model processing
 
-from helper_functions import *
+from helper_functions import print_dtm, make_plot, make_biplot
 import pandas as pd
 from collections import Counter
 import string
@@ -9,17 +9,30 @@ from nltk.tokenize import wordpunct_tokenize
 from nltk.stem.porter import PorterStemmer
 from sklearn.decomposition import PCA
 import numpy as np
+from tweetloader import TweetLoader
 
 # Some global defaults
 max_tweets = 500
 max_words = 150
 
 # Load most recent tweets from Hillary Clinton and Donald Trump
-df_hillary = grab_user_tweets('HillaryClinton', max_tweets)
-df_trump = grab_user_tweets('realDonaldTrump', max_tweets)
+h = TweetLoader('HillaryClinton')
+h.load()
+h.search(max_tweets, exclude_replies='true', include_rts='false')
+h.save()
+
+t = TweetLoader('realDonaldTrump')
+t.load()
+t.search(max_tweets, exclude_replies='true', include_rts='false')
+t.save()
+
+# Make backups every once in a while
+if False:
+    h.makebackup()
+    t.makebackup()
 
 # Merge tweets together, get most common terms
-df_tweets = pd.concat([df_hillary['text'], df_trump['text']], axis=0, join='outer', join_axes=None,
+df_tweets = pd.concat([h.tweets['text'], t.tweets['text']], axis=0, join='outer', join_axes=None,
                       ignore_index=True, keys=None, levels=None, names=None, verify_integrity=False)
 str_list = ' '.join([tweet for tweet in df_tweets])
 
@@ -29,7 +42,7 @@ stop_words.update([s for s in string.punctuation] +
                   [u'\u2014', u'\u2019', u'\u201c', u'\xf3', u'\u201d', u'\u2014@', u'://', u'!"', u'"@',
                    u'."', u'.@', u'co'])
 # Political terms and Twitter handles to remove
-stop_words.update(['hillary', 'clinton', 'donald', 'trump', 'clinton2016', 'trump2016', 'hillary2016'])
+# stop_words.update(['hillary', 'clinton', 'donald', 'trump', 'clinton2016', 'trump2016', 'hillary2016'])
 stop_words.update(['realdonaldtrump', 'hillaryclinton'])
 
 words = Counter([porter.stem(i.lower()) for i in wordpunct_tokenize(str_list)
@@ -49,7 +62,7 @@ for tweet in df_tweets:
              if i.lower() not in stop_words and not i.lower().startswith('http')]
 
     for word in tweetwords:
-        if word in top_tweetwords.keys():
+        if word in top_words.keys():
             newrow[word] += 1
 
     dtm.append(newrow)
@@ -58,7 +71,7 @@ for tweet in df_tweets:
 print_dtm(dtm, df_tweets, 45)
 
 # Assign label (second array) for Hillary/Trump tweets
-label_array = np.array([0]*len(df_hillary) + [1]*len(df_trump))
+label_array = np.array([0]*len(h.tweets) + [1]*len(t.tweets))
 
 # Pass common terms to PCA, retaining components that describe ~70% of the variance
 df_dtm = pd.DataFrame(dtm, columns=top_words.keys())

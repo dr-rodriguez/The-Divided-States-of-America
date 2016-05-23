@@ -128,3 +128,4 @@ def make_biplot(pcscores, labels, loadings, xval=0, yval=1, max_arrow=0.2):
     plt.legend(loc='best', numpoints=1)
     plt.grid()
     plt.show()
+
