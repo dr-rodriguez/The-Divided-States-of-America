@@ -85,9 +85,9 @@ class TweetLoader:
             page += 1
 
         if len(self.tweets) == 0:
-            self.tweets = df
+            self.tweets = df[['id', 'text']]
         else:
-            self.tweets = self.merge(df)
+            self.tweets = self.merge(df[['id', 'text']])
 
         return
 
@@ -116,7 +116,7 @@ class TweetLoader:
         return newdf
 
     def save(self):
-        self.tweets.to_json('data/'+self.filename)
+        self.tweets[['id', 'text']].to_json('data/'+self.filename)  # only save ID and the tweet text to save space
         return
 
     def makebackup(self):
