@@ -35,7 +35,7 @@ class TweetLoader:
 
         return
 
-    def search(self, max_tweets=200, exclude_replies='true', include_rts='false'):
+    def timeline(self, max_tweets=200, exclude_replies='true', include_rts='false'):
         """
             Load Twitter timeline for the specified user
 

@@ -8,12 +8,12 @@ max_tweets = 1000
 
 h = TweetLoader('HillaryClinton')
 h.load()
-h.search(max_tweets, exclude_replies='true', include_rts='false')
+h.timeline(max_tweets, exclude_replies='true', include_rts='false')
 h.save()
 
 t = TweetLoader('realDonaldTrump')
 t.load()
-t.search(max_tweets, exclude_replies='true', include_rts='false')
+t.timeline(max_tweets, exclude_replies='true', include_rts='false')
 t.save()
 
 print(time.strftime("%Y-%m-%d"))

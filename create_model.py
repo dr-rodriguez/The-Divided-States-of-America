@@ -31,8 +31,8 @@ if load_tweets:
     t.load()
 
 if get_new_tweets:
-    h.search(max_tweets, exclude_replies='true', include_rts='false')
-    t.search(max_tweets, exclude_replies='true', include_rts='false')
+    h.timeline(max_tweets, exclude_replies='true', include_rts='false')
+    t.timeline(max_tweets, exclude_replies='true', include_rts='false')
 
 if save_tweets:
     h.save()
