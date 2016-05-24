@@ -35,16 +35,20 @@ if save_tweets:
     h.save()
     t.save()
 
+
 # Merge tweets together, get most common terms
 df_tweets = pd.concat([h.tweets['text'], t.tweets['text']], axis=0, join='outer', join_axes=None,
                       ignore_index=True, keys=None, levels=None, names=None, verify_integrity=False)
 str_list = ' '.join([tweet for tweet in df_tweets])
 
 porter = PorterStemmer()  # use stemming
-stop_words = set(stopwords.words('english'))  # remove stopwords
+
+# Remove stop words
+stop_words = set(stopwords.words('english'))
 stop_words.update([s for s in string.punctuation] +
                   [u'\u2014', u'\u2019', u'\u201c', u'\xf3', u'\u201d', u'\u2014@', u'://', u'!"', u'"@',
                    u'."', u'.@', u'co'])
+
 # Political terms and Twitter handles to remove
 stop_words.update(['hillary', 'clinton', 'donald', 'trump', 'clinton2016',
                    'trump2016', 'hillary2016', 'makeamericagreatagain'])
@@ -53,6 +57,7 @@ stop_words.update(['realdonaldtrump', 'hillaryclinton'])
 words = Counter([porter.stem(i.lower()) for i in wordpunct_tokenize(str_list)
                  if i.lower() not in stop_words and not i.lower().startswith('http')])
 top_words = dict(words.most_common(max_words))
+
 
 # Check each tweet against the most common terms
 dtm = []
@@ -72,6 +77,7 @@ for tweet in df_tweets:
 
     dtm.append(newrow)
 
+
 # Quickly look at some results
 print_dtm(dtm, df_tweets, 45)
 
@@ -86,8 +92,6 @@ ax.set_xticks(ind + width)
 plt.xticks(ind + width, top_25.keys(), rotation='vertical')
 plt.tight_layout()
 
-# Assign label (second array) for Hillary/Trump tweets
-label_array = np.array([0]*len(h.tweets) + [1]*len(t.tweets))
 
 # Pass common terms to PCA, retaining components that describe ~70% of the variance
 df_dtm = pd.DataFrame(dtm, columns=top_words.keys())
@@ -106,6 +110,10 @@ make_biplot(pcscores, label_array, loadings, 2, 3)
 # Top terms in components
 top_factors(load_squared, 0)
 top_factors(load_squared, 1)
+
+
+# Assign label (second array) for Hillary(0)/Trump(1) tweets
+label_array = np.array([0]*len(h.tweets) + [1]*len(t.tweets))
 
 # Create randomized index, split 80-20 into training/test sets
 ind = np.arange(len(df_tweets))
