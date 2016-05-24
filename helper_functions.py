@@ -129,3 +129,10 @@ def make_biplot(pcscores, labels, loadings, xval=0, yval=1, max_arrow=0.2):
     plt.grid()
     plt.show()
 
+
+def top_factors(data, comp, count=10, ascend=False):
+    x = data.iloc[:, comp].copy()
+    x.sort_values(ascending=ascend, inplace=True)
+    print(x[:count])
+    return
+

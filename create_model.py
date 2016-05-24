@@ -1,6 +1,6 @@
 # Script to carry out my model processing
 
-from helper_functions import print_dtm, make_plot, make_biplot
+from helper_functions import print_dtm, make_plot, make_biplot, top_factors
 import pandas as pd
 from collections import Counter
 import string
@@ -21,9 +21,6 @@ save_tweets = False
 
 # Load most recent tweets from Hillary Clinton and Donald Trump
 h = TweetLoader('HillaryClinton')
-h.load()
-
-h.search(max_tweets, exclude_replies='true', include_rts='false')
 t = TweetLoader('realDonaldTrump')
 
 if load_tweets:
@@ -49,7 +46,8 @@ stop_words.update([s for s in string.punctuation] +
                   [u'\u2014', u'\u2019', u'\u201c', u'\xf3', u'\u201d', u'\u2014@', u'://', u'!"', u'"@',
                    u'."', u'.@', u'co'])
 # Political terms and Twitter handles to remove
-# stop_words.update(['hillary', 'clinton', 'donald', 'trump', 'clinton2016', 'trump2016', 'hillary2016'])
+stop_words.update(['hillary', 'clinton', 'donald', 'trump', 'clinton2016',
+                   'trump2016', 'hillary2016', 'makeamericagreatagain'])
 stop_words.update(['realdonaldtrump', 'hillaryclinton'])
 
 words = Counter([porter.stem(i.lower()) for i in wordpunct_tokenize(str_list)
@@ -77,6 +75,17 @@ for tweet in df_tweets:
 # Quickly look at some results
 print_dtm(dtm, df_tweets, 45)
 
+# Word chart
+top_25 = dict(words.most_common(25))
+fig, ax = plt.subplots()
+ind = np.arange(len(top_25))
+width = 0.35
+ax.bar(ind + width, top_25.values(), width, color='b')
+ax.set_ylabel('Word Count')
+ax.set_xticks(ind + width)
+plt.xticks(ind + width, top_25.keys(), rotation='vertical')
+plt.tight_layout()
+
 # Assign label (second array) for Hillary/Trump tweets
 label_array = np.array([0]*len(h.tweets) + [1]*len(t.tweets))
 
@@ -92,18 +101,11 @@ load_squared.columns = ['PC'+str(i+1) for i in range(pcscores.shape[1])]
 
 # Exploratory plots
 make_plot(pcscores, label_array, 0, 1)
-make_biplot(pcscores, label_array, loadings, 0, 1)
+make_biplot(pcscores, label_array, loadings, 2, 3)
 
-# Word chart
-top_25 = dict(words.most_common(25))
-fig, ax = plt.subplots()
-ind = np.arange(len(top_25))
-width = 0.35
-ax.bar(ind + width, top_25.values(), width, color='b')
-ax.set_ylabel('Word Count')
-ax.set_xticks(ind + width)
-plt.xticks(ind + width, top_25.keys(), rotation='vertical')
-plt.tight_layout()
+# Top terms in components
+top_factors(load_squared, 0)
+top_factors(load_squared, 1)
 
 # Create randomized index, split 80-20 into training/test sets
 ind = np.arange(len(df_tweets))
