@@ -4,7 +4,7 @@
 from tweetloader import TweetLoader
 import time
 
-max_tweets = 2000
+max_tweets = 1000
 
 h = TweetLoader('HillaryClinton')
 h.load()

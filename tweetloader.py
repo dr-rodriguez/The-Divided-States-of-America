@@ -11,6 +11,7 @@ class TweetLoader:
     def __init__(self, screen_name, filename='tweets.json'):
         self.screen_name = screen_name
         self.tweets = []
+        self.columns = ['id', 'text', 'created_at', 'user.screen_name']  # which information to save
 
         if screen_name == 'HillaryClinton':
             self.filename = 'hillary.json'
@@ -85,9 +86,9 @@ class TweetLoader:
             page += 1
 
         if len(self.tweets) == 0:
-            self.tweets = df[['id', 'text']]
+            self.tweets = df[self.columns]
         else:
-            self.tweets = self.merge(df[['id', 'text']])
+            self.tweets = self.merge(df[self.columns])
 
         return
 
@@ -116,7 +117,7 @@ class TweetLoader:
         return newdf
 
     def save(self):
-        self.tweets[['id', 'text']].to_json('data/'+self.filename)  # only save ID and the tweet text to save space
+        self.tweets.to_json('data/'+self.filename)  # only save ID and the tweet text to save space
         return
 
     def makebackup(self):

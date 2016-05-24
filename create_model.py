@@ -10,26 +10,33 @@ from nltk.stem.porter import PorterStemmer
 from sklearn.decomposition import PCA
 import numpy as np
 from tweetloader import TweetLoader
+import matplotlib.pyplot as plt
 
 # Some global defaults
 max_tweets = 500
 max_words = 150
+load_tweets = True
+get_new_tweets = False
+save_tweets = False
 
 # Load most recent tweets from Hillary Clinton and Donald Trump
 h = TweetLoader('HillaryClinton')
 h.load()
+
 h.search(max_tweets, exclude_replies='true', include_rts='false')
-h.save()
-
 t = TweetLoader('realDonaldTrump')
-t.load()
-t.search(max_tweets, exclude_replies='true', include_rts='false')
-t.save()
 
-# Make backups every once in a while
-if False:
-    h.makebackup()
-    t.makebackup()
+if load_tweets:
+    h.load()
+    t.load()
+
+if get_new_tweets:
+    h.search(max_tweets, exclude_replies='true', include_rts='false')
+    t.search(max_tweets, exclude_replies='true', include_rts='false')
+
+if save_tweets:
+    h.save()
+    t.save()
 
 # Merge tweets together, get most common terms
 df_tweets = pd.concat([h.tweets['text'], t.tweets['text']], axis=0, join='outer', join_axes=None,
