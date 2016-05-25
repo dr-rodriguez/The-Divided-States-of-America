@@ -1,6 +1,6 @@
 # Script to carry out my model processing
 
-from helper_functions import print_dtm, make_plot, make_biplot, top_factors
+from helper_functions import print_dtm, make_plot, make_biplot, top_factors, pretty_cm
 import pandas as pd
 from collections import Counter
 import string
@@ -11,6 +11,9 @@ from sklearn.decomposition import PCA
 import numpy as np
 from tweetloader import TweetLoader
 import matplotlib.pyplot as plt
+from sklearn.svm import SVC
+from sklearn.metrics import confusion_matrix, classification_report
+from sklearn.cross_validation import train_test_split
 
 # Some global defaults
 max_tweets = 500
@@ -103,33 +106,41 @@ loadings = pd.DataFrame(pca.components_, columns=top_words.keys())
 load_squared = loadings.transpose()**2
 load_squared.columns = ['PC'+str(i+1) for i in range(pcscores.shape[1])]
 
+# Assign label (second array) for Hillary(0)/Trump(1) tweets
+label_array = np.array([0]*len(h.tweets) + [1]*len(t.tweets))
+
 # Exploratory plots
 make_plot(pcscores, label_array, 0, 1)
 make_biplot(pcscores, label_array, loadings, 2, 3)
 
 # Top terms in components
 top_factors(load_squared, 0)
-top_factors(load_squared, 1)
-
-
-# Assign label (second array) for Hillary(0)/Trump(1) tweets
-label_array = np.array([0]*len(h.tweets) + [1]*len(t.tweets))
+top_factors(load_squared, 2)
 
 # Create randomized index, split 80-20 into training/test sets
-ind = np.arange(len(df_tweets))
-np.random.shuffle(ind)
+df_train, df_test, train_label, test_label = train_test_split(pcscores, label_array,
+                                                              test_size=0.2, random_state=42)
 
-# Shuffle arrays
-pcscores = pcscores.iloc[ind]
-label_array = label_array[ind]
+# Run SVC (support vector classifier) on training set
+clf = SVC(C=1.0)
+clf.fit(df_train, train_label)
+test_predict = clf.predict(df_test)
 
-cut = int(len(ind)*0.8)
-df_train = pcscores.iloc[:cut]
-df_test = pcscores.iloc[cut:]
-train_label = label_array[:cut]
-test_label = label_array[cut:]
-
-# TODO: Run SCV on training set
+# Examine confusion matrix
+cm = confusion_matrix(test_label, test_predict)
+cm_normalized = cm.astype('float') / cm.sum(axis=0)[:, np.newaxis]  # axis=0 by column(precision), axis=1 by row(recall)
+label_names=['Hillary', 'Trump']
+pretty_cm(cm, label_names)
+pretty_cm(cm_normalized, label_names, show_sum=False)
+print(classification_report(test_label, test_predict, target_names=label_names))
+"""
+The precision is the ratio tp / (tp + fp) where tp is the number of true positives and fp the number of false positives.
+The precision is intuitively the ability of the classifier not to label as positive a sample that is negative.
+The recall is the ratio tp / (tp + fn) where tp is the number of true positives and fn the number of false negatives.
+The recall is intuitively the ability of the classifier to find all the positive samples.
+These quantities are also related to the (F_1) score, which is defined as the harmonic mean of precision and recall.
+F1 = 2\frac{P \times R}{P+R}
+"""
 
 # TODO: Compare to test set
 

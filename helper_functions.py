@@ -6,6 +6,7 @@ from requests_oauthlib import OAuth1 # used for twitter's api
 from pandas.io.json import json_normalize
 import matplotlib.pyplot as plt
 from math import sqrt
+import pandas as pd
 
 # Load and set twitter API authorization
 with open("twitter_secrets.json.nogit") as f:
@@ -135,4 +136,13 @@ def top_factors(data, comp, count=10, ascend=False):
     x.sort_values(ascending=ascend, inplace=True)
     print(x[:count])
     return
+
+
+def pretty_cm(cm, label_names=['Hillary', 'Trump'], show_sum=True):
+    table = pd.DataFrame(cm, columns=['P-'+s for s in label_names], index=['T-'+s for s in label_names])
+    print(table)
+    if show_sum:
+        print('Sum of columns: {}'.format(cm.sum(axis=0)))
+        print('Sum of rows: {}'.format(cm.sum(axis=1)))
+
 
