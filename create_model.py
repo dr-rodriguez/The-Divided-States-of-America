@@ -127,6 +127,8 @@ clf = SVC(C=1.0)
 clf.fit(df_train, train_label)
 test_predict = clf.predict(df_test)
 
+# TODO: Add cross validation to tune parameters
+
 # Examine confusion matrix
 cm = confusion_matrix(test_label, test_predict)
 cm_normalized = cm.astype('float') / cm.sum(axis=0)[:, np.newaxis]  # axis=0 by column(precision), axis=1 by row(recall)
@@ -144,5 +146,5 @@ F1 = 2\frac{P \times R}{P+R}
 """
 
 # Save model
-joblib.dump(clf, 'model.pkl')
-# clf = joblib.load('model.pkl')
+joblib.dump(clf, 'model/model.pkl')
+# clf = joblib.load('model/model.pkl')
