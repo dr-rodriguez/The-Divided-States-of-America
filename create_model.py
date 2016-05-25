@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 from sklearn.svm import SVC
 from sklearn.metrics import confusion_matrix, classification_report
 from sklearn.cross_validation import train_test_split
+from sklearn.externals import joblib
 
 # Some global defaults
 max_tweets = 500
@@ -142,7 +143,6 @@ These quantities are also related to the (F_1) score, which is defined as the ha
 F1 = 2\frac{P \times R}{P+R}
 """
 
-# TODO: Compare to test set
-
-# TODO: Figure out how to get confusion matrix
-
+# Save model
+joblib.dump(clf, 'model.pkl')
+# clf = joblib.load('model.pkl')
