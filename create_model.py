@@ -11,10 +11,10 @@ from sklearn.decomposition import PCA
 import numpy as np
 from tweetloader import TweetLoader
 import matplotlib.pyplot as plt
-from sklearn.svm import SVC
 from sklearn.metrics import confusion_matrix, classification_report
 from sklearn.cross_validation import train_test_split
 from sklearn.externals import joblib
+from sklearn import svm, grid_search
 
 # Some global defaults
 max_tweets = 500
@@ -123,11 +123,13 @@ df_train, df_test, train_label, test_label = train_test_split(pcscores, label_ar
                                                               test_size=0.2, random_state=42)
 
 # Run SVC (support vector classifier) on training set
-clf = SVC(C=1.0)
+# with cross validation to tune parameters
+parameters = {'kernel':('linear', 'rbf'), 'C':[1, 10]}
+svr = svm.SVC()
+clf = grid_search.GridSearchCV(svr, parameters, cv=5, error_score=0)
 clf.fit(df_train, train_label)
+print('Best parameters: {}'.format(clf.best_params_))
 test_predict = clf.predict(df_test)
-
-# TODO: Add cross validation to tune parameters
 
 # Examine confusion matrix
 cm = confusion_matrix(test_label, test_predict)
@@ -144,6 +146,13 @@ The recall is intuitively the ability of the classifier to find all the positive
 These quantities are also related to the (F_1) score, which is defined as the harmonic mean of precision and recall.
 F1 = 2\frac{P \times R}{P+R}
 """
+
+# Checking false positives
+ind = np.where(test_label != test_predict)
+orig_ind = df_test.iloc[ind].index
+# df_tweets[orig_ind] # All
+df_tweets[ orig_ind[ label_array[orig_ind]==0 ] ]  # Hillary only
+df_tweets[ orig_ind[ label_array[orig_ind]==1 ] ]  # Trump only
 
 # Save model
 joblib.dump(clf, 'model/model.pkl')
