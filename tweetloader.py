@@ -11,7 +11,7 @@ class TweetLoader:
     def __init__(self, screen_name, filename='tweets.json'):
         self.screen_name = screen_name
         self.tweets = []
-        self.columns = ['id', 'text', 'created_at', 'user.screen_name']  # which information to save
+        self.columns = ['id', 'text', 'created_at', 'user.screen_name', 'user.location']  # which information to save
 
         if screen_name == 'HillaryClinton':
             self.filename = 'hillary.json'
