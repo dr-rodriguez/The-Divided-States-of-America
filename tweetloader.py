@@ -6,12 +6,21 @@ from pandas.io.json import json_normalize
 import pandas as pd
 import time
 import os
+import urllib
+import numpy as np
+
 
 class TweetLoader:
-    def __init__(self, screen_name, filename='tweets.json'):
+
+    def __init__(self, screen_name='', filename='tweets.json', track_location=False):
         self.screen_name = screen_name
         self.tweets = []
-        self.columns = ['id', 'text', 'created_at', 'user.screen_name', 'user.location']  # which information to save
+        self.columns = ['id', 'text', 'created_at', 'user.screen_name']  # which information to save
+        self.track_location = track_location
+
+        # Save location information
+        if track_location:
+            self.columns = self.columns + ['geo.coordinates', 'user.location']
 
         if screen_name == 'HillaryClinton':
             self.filename = 'hillary.json'
@@ -32,8 +41,6 @@ class TweetLoader:
             secrets["access_token"],
             secrets["access_token_secret"]
         )
-
-        return
 
     def timeline(self, max_tweets=200, exclude_replies='true', include_rts='false'):
         """
@@ -90,7 +97,67 @@ class TweetLoader:
         else:
             self.tweets = self.merge(df[self.columns])
 
-        return
+    def stream(self):
+        # Not yet implemented
+
+        # Accessing the stream API (live tweets)
+        US_BOUNDING_BOX = "-125.00,24.94,-66.93,49.59"
+
+    def search(self, query, max_tweets=200, remove_rts=True, hard_remove=True):
+
+        # Search API only allows 100 tweets per page
+        max_pages = int(max_tweets) // 100
+        if max_pages < 1:
+            max_pages = 1
+
+        if max_tweets < 200:
+            count = int(max_tweets)
+        else:
+            count = 200
+
+        # Prepare query
+        if remove_rts:
+            query += ' -filter:retweets'
+        if hard_remove:
+            query += ' -RT'  # eliminates anything with RT, which may not always be a retweet
+
+        encoded_query = urllib.quote_plus(query)
+
+        page = 0
+        url = 'https://api.twitter.com/1.1/search/tweets.json'
+        for i in range(max_pages):
+            if page == 0:
+                params = {'q': encoded_query, 'result_type': 'recent', 'count': count, 'lang': 'en'}
+            else:
+                max_id = data[i]['id'] - 1
+                params = {'q': encoded_query, 'result_type': 'recent', 'count': count, 'lang': 'en', 'max_id': max_id}
+
+            r = requests.get(url, auth=self.auth, params=params)
+            data = simplejson.loads(r.text)['statuses']
+
+            if page == 0:
+                df = json_normalize(data)
+            else:
+                df = df.append(json_normalize(data))
+
+            page += 1
+
+        # Check that all columns are there, if not add empty ones
+        for col in self.columns:
+            if col not in df.columns:
+                df[col] = pd.Series([np.nan] * len(df), index=df.index)
+
+        # TODO: Add location filtering
+        if self.track_location:
+            print('Filtering by location')
+            # Function call. Should check coordinates and if empty, should look at location and use twitter's geo/search api
+
+        if len(self.tweets) == 0:
+            self.tweets = df[self.columns]
+        else:
+            self.tweets = self.merge(df[self.columns])
+
+        return df
 
     def load(self):
         if not os.path.isfile('data/' + self.filename):
@@ -117,7 +184,7 @@ class TweetLoader:
         return newdf
 
     def save(self):
-        self.tweets.to_json('data/'+self.filename)  # only save ID and the tweet text to save space
+        self.tweets.reset_index(drop=True).to_json('data/'+self.filename)
         return
 
     def makebackup(self):
