@@ -6,11 +6,11 @@
 from tweetloader import TweetLoader
 import time
 
-h = TweetLoader('HillaryClinton')
+h = TweetLoader('HillaryClinton', track_location=False)
 h.load()
 h.makebackup()
 
-t = TweetLoader('realDonaldTrump')
+t = TweetLoader('realDonaldTrump', track_location=False)
 t.load()
 t.makebackup()
 

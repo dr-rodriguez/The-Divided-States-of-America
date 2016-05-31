@@ -162,8 +162,6 @@ class TweetLoader:
     def get_geo(self):
         """
         Get latitude and longitude from the Google API and a user's location
-
-        :return:
         """
 
         # Eliminate empty locations
@@ -184,15 +182,9 @@ class TweetLoader:
                     continue
                 except TypeError:
                     if self.verbose: print geo
-                    #nothing here
 
             # Using Google API for geocoding
-            # url = 'http://maps.googleapis.com/maps/api/geocode/json'
-            # params = {'address': loc.strip(), 'sensor': 'false'}
-
             time.sleep(0.2)  # avoid API limits
-            # r = requests.get(url, params=params)
-            # data = simplejson.loads(r.text)
             status, geo = geo_api_search(loc)
 
             if status in ['ZERO_RESULTS']:
@@ -200,10 +192,6 @@ class TweetLoader:
                 continue
 
             if status in ['OK']:
-                # lat = data['results'][0]['geometry']['location']['lat']
-                # lon = data['results'][0]['geometry']['location']['lng']
-                # geo = [lat, lon]  # lat first, then lon
-
                 # Remove non-US tweets
                 if not check_US(*geo):
                     droplist.append(i)
@@ -243,7 +231,7 @@ class TweetLoader:
         return newdf
 
     def save(self):
-        self.tweets.reset_index(drop=True).to_json('data/'+self.filename)
+        self.tweets.reset_index(drop=True, inplace=True).to_json('data/'+self.filename)
         return
 
     def makebackup(self):
@@ -251,6 +239,7 @@ class TweetLoader:
         newfile = self.filename[:-5] + '_' + time.strftime("%Y-%m-%d") + '.json'
         data.to_json('data/backup/' + newfile)
         return
+
 
 def check_US(lat, lon):
     # US_BOUNDING_BOX = "-125.00,24.94,-66.93,49.59"
@@ -265,6 +254,13 @@ def check_US(lat, lon):
 
 
 def geo_api_search(loc):
+    """
+    Use Google API to get location information
+
+    :param loc: string to parse
+    :return: status, latitude, longitude
+    """
+
     url = 'http://maps.googleapis.com/maps/api/geocode/json'
     params = {'address': loc.strip(), 'sensor': 'false'}
 
