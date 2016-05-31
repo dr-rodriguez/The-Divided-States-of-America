@@ -6,7 +6,6 @@ from pandas.io.json import json_normalize
 import pandas as pd
 import time
 import os
-import urllib
 import numpy as np
 
 
@@ -17,6 +16,7 @@ class TweetLoader:
         self.tweets = []
         self.columns = ['id', 'text', 'created_at', 'user.screen_name']  # which information to save
         self.track_location = track_location
+        self.verbose = False
 
         # Save location information
         if track_location:
@@ -29,7 +29,7 @@ class TweetLoader:
         else:
             self.filename = filename
 
-        print('Using {}'.format(self.filename))
+        if self.verbose: print('Using {}'.format(self.filename))
 
         # Twitter authorization
         with open("twitter_secrets.json.nogit") as f:
@@ -121,16 +121,16 @@ class TweetLoader:
         if hard_remove:
             query += ' -RT'  # eliminates anything with RT, which may not always be a retweet
 
-        encoded_query = urllib.quote_plus(query)
+        # encoded_query = urllib.quote_plus(query)
 
         page = 0
         url = 'https://api.twitter.com/1.1/search/tweets.json'
         for i in range(max_pages):
             if page == 0:
-                params = {'q': encoded_query, 'result_type': 'recent', 'count': count, 'lang': 'en'}
+                params = {'q': query, 'result_type': 'recent', 'count': count, 'lang': 'en'}
             else:
                 max_id = data[i]['id'] - 1
-                params = {'q': encoded_query, 'result_type': 'recent', 'count': count, 'lang': 'en', 'max_id': max_id}
+                params = {'q': query, 'result_type': 'recent', 'count': count, 'lang': 'en', 'max_id': max_id}
 
             r = requests.get(url, auth=self.auth, params=params)
             data = simplejson.loads(r.text)['statuses']
@@ -147,17 +147,76 @@ class TweetLoader:
             if col not in df.columns:
                 df[col] = pd.Series([np.nan] * len(df), index=df.index)
 
-        # TODO: Add location filtering
-        if self.track_location:
-            print('Filtering by location')
-            # Function call. Should check coordinates and if empty, should look at location and use twitter's geo/search api
-
         if len(self.tweets) == 0:
             self.tweets = df[self.columns]
         else:
             self.tweets = self.merge(df[self.columns])
 
-        return df
+        # Filter by location
+        if self.track_location:
+            if self.verbose: print('Filtering by location')
+            self.get_geo()
+
+        return
+
+    def get_geo(self):
+        """
+        Get latitude and longitude from the Google API and a user's location
+
+        :return:
+        """
+
+        # Eliminate empty locations
+        self.tweets = self.tweets[self.tweets['user.location'] != u'']
+
+        # Search locations
+        self.tweets.reset_index(drop=True, inplace=True)
+        droplist = []
+        for i in range(len(self.tweets)):
+            geo = self.tweets.iloc[i]['geo.coordinates']
+            loc = self.tweets.iloc[i]['user.location']
+
+            if geo is not None:
+                try:
+                    if not check_US(*geo):
+                        droplist.append(i)
+                        if self.verbose: print 'Removing: ', i, geo, loc
+                    continue
+                except TypeError:
+                    if self.verbose: print geo
+                    #nothing here
+
+            # Using Google API for geocoding
+            # url = 'http://maps.googleapis.com/maps/api/geocode/json'
+            # params = {'address': loc.strip(), 'sensor': 'false'}
+
+            time.sleep(0.2)  # avoid API limits
+            # r = requests.get(url, params=params)
+            # data = simplejson.loads(r.text)
+            status, geo = geo_api_search(loc)
+
+            if status in ['ZERO_RESULTS']:
+                droplist.append(i)
+                continue
+
+            if status in ['OK']:
+                # lat = data['results'][0]['geometry']['location']['lat']
+                # lon = data['results'][0]['geometry']['location']['lng']
+                # geo = [lat, lon]  # lat first, then lon
+
+                # Remove non-US tweets
+                if not check_US(*geo):
+                    droplist.append(i)
+                    if self.verbose: print 'Removing: ', i, geo, loc
+                else:
+                    self.tweets.set_value(i, 'geo.coordinates', geo)  # Add to tweet
+            else:
+                if self.verbose: print(status)
+                if self.verbose: print geo, loc
+
+        self.tweets.drop(droplist, inplace=True)
+
+        return
 
     def load(self):
         if not os.path.isfile('data/' + self.filename):
@@ -192,3 +251,32 @@ class TweetLoader:
         newfile = self.filename[:-5] + '_' + time.strftime("%Y-%m-%d") + '.json'
         data.to_json('data/backup/' + newfile)
         return
+
+def check_US(lat, lon):
+    # US_BOUNDING_BOX = "-125.00,24.94,-66.93,49.59"
+    good = False
+
+    if (lat >= 24.94) and (lat <= 49.59) and (lon >= -125) and (lon <= -66.93):
+        good = True
+    else:
+        good = False
+
+    return good
+
+
+def geo_api_search(loc):
+    url = 'http://maps.googleapis.com/maps/api/geocode/json'
+    params = {'address': loc.strip(), 'sensor': 'false'}
+
+    r = requests.get(url, params=params)
+    data = simplejson.loads(r.text)
+
+    if data['status'] in ['OK']:
+        lat = data['results'][0]['geometry']['location']['lat']
+        lon = data['results'][0]['geometry']['location']['lng']
+        geo = [lat, lon]  # lat first, then lon
+    else:
+        geo = None
+
+    return data['status'], geo
+

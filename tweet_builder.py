@@ -20,7 +20,7 @@ t.save()
 s = TweetLoader(filename='search.json', track_location=True)
 s.load()
 query = 'politic OR trump OR hillary OR clinton OR election'
-x = s.search(query, max_tweets)
+s.search(query, max_tweets)
 s.save()
 
 print(time.strftime("%Y-%m-%d"))
