@@ -110,10 +110,10 @@ class TweetLoader:
         if max_pages < 1:
             max_pages = 1
 
-        if max_tweets < 200:
+        if max_tweets < 100:
             count = int(max_tweets)
         else:
-            count = 200
+            count = 100
 
         # Prepare query
         if remove_rts:
@@ -129,11 +129,15 @@ class TweetLoader:
             if page == 0:
                 params = {'q': query, 'result_type': 'recent', 'count': count, 'lang': 'en'}
             else:
-                max_id = data[i]['id'] - 1
+                max_id = data[-1]['id'] - 1
                 params = {'q': query, 'result_type': 'recent', 'count': count, 'lang': 'en', 'max_id': max_id}
 
             r = requests.get(url, auth=self.auth, params=params)
             data = simplejson.loads(r.text)['statuses']
+
+            if len(data) == 0:
+                if self.verbose: print('No more results found')
+                break
 
             if page == 0:
                 df = json_normalize(data)
@@ -231,7 +235,7 @@ class TweetLoader:
         return newdf
 
     def save(self):
-        self.tweets.reset_index(drop=True, inplace=True).to_json('data/'+self.filename)
+        self.tweets.reset_index(drop=True).to_json('data/'+self.filename)
         return
 
     def makebackup(self):
