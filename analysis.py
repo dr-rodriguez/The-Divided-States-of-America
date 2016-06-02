@@ -17,7 +17,7 @@ class Analyzer:
     Class for carrying out the analysis and model creation/loading
     """
 
-    def __init__(self, data, labels, max_words=150, load_pca=False, load_svm=False):
+    def __init__(self, data, labels=None, max_words=150, load_pca=False, load_svm=False):
         self.data = data  # Data matrix
         self.labels = labels  # Label array
 
@@ -47,6 +47,18 @@ class Analyzer:
         self.stop_words.update(['hillary', 'clinton', 'donald', 'trump', 'clinton2016',
                                 'trump2016', 'hillary2016', 'makeamericagreatagain'])
         self.stop_words.update(['realdonaldtrump', 'hillaryclinton', 'berniesanders'])
+
+    def create_full_model(self):
+        self.get_words()
+        self.create_dtm()
+        self.run_pca()
+        return self.run_svm()
+
+    def load_full_model(self):
+        self.load_words()
+        self.create_dtm()
+        self.run_pca()
+        return self.run_svm()
 
     def get_words(self):
         str_list = ' '.join([tweet for tweet in self.data])
@@ -86,6 +98,7 @@ class Analyzer:
 
         # Load or run the PCA
         if self.load_pca:
+            print('Loading model/{}'.format(filename))
             pca = joblib.load('model/'+filename)
         else:
             pca = PCA(n_components=0.8)
@@ -110,7 +123,7 @@ class Analyzer:
         if not self.load_svm:
             df_train, df_test, train_label, test_label = train_test_split(self.pcscores, self.labels,
                                                                           test_size=0.2, random_state=42)
-            parameters = {'kernel': ('linear', 'rbf'), 'C': [1, 10]}
+            parameters = {'kernel': ('linear', 'rbf'), 'C': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}
             svr = svm.SVC()
             clf = grid_search.GridSearchCV(svr, parameters, cv=5, error_score=0)
             clf.fit(df_train, train_label)
@@ -119,6 +132,7 @@ class Analyzer:
             self.svc = clf
             return prediction, test_label
         else:
+            print('Loading model/{}'.format(filename))
             clf = joblib.load('model/'+filename)
             prediction = clf.predict(self.pcscores)
             self.svc = clf
@@ -138,12 +152,13 @@ class Analyzer:
         return cm
 
 
-def pretty_cm(cm, label_names=['Hillary', 'Trump'], show_sum=True):
+def pretty_cm(cm, label_names=['Hillary', 'Trump'], show_sum=False):
     table = pd.DataFrame(cm, columns=['P-' + s for s in label_names], index=['T-' + s for s in label_names])
     print(table)
     if show_sum:
         print('Sum of columns: {}'.format(cm.sum(axis=0)))
         print('Sum of rows: {}'.format(cm.sum(axis=1)))
+    print('')
 
 
 
