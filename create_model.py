@@ -43,15 +43,3 @@ mod.save_words()
 mod.save_pca()
 mod.save_svm()
 
-# ===============================================================================================================
-# Load results
-mod = Analyzer(df_tweets, max_words=max_words, load_pca=True, load_svm=True)
-
-# mod.load_words()
-# mod.create_dtm()
-# mod.run_pca()
-# mod.run_svm()
-
-# One-line alternative with defaults
-prediction = mod.load_full_model()
-
