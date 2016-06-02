@@ -26,6 +26,8 @@ class TweetLoader:
             self.filename = 'hillary.json'
         elif screen_name == 'realDonaldTrump':
             self.filename = 'trump.json'
+        elif screen_name == 'BernieSanders':
+            self.filename = 'sanders.json'
         else:
             self.filename = filename
 
