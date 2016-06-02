@@ -123,7 +123,7 @@ class Analyzer:
         if not self.load_svm:
             df_train, df_test, train_label, test_label = train_test_split(self.pcscores, self.labels,
                                                                           test_size=0.2, random_state=42)
-            parameters = {'kernel': ('linear', 'rbf'), 'C': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}
+            parameters = {'kernel': ('linear', 'rbf'), 'C': [1, 2, 4, 6, 8, 10]}
             svr = svm.SVC()
             clf = grid_search.GridSearchCV(svr, parameters, cv=5, error_score=0)
             clf.fit(df_train, train_label)

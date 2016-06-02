@@ -4,6 +4,7 @@ from analysis import Analyzer
 from tweetloader import TweetLoader
 import pandas as pd
 import numpy as np
+import os
 
 # Some global defaults
 max_words = 150
@@ -25,10 +26,10 @@ df_tweets = pd.concat([h.tweets['text'], t.tweets['text']], axis=0, join='outer'
 # Using the Analyzer class
 mod = Analyzer(df_tweets, label_array, max_words=max_words, load_pca=False, load_svm=False)
 
-mod.get_words()
-mod.create_dtm()
-mod.run_pca()
-test_predict, test_label = mod.run_svm()
+# mod.get_words()
+# mod.create_dtm()
+# mod.run_pca()
+# test_predict, test_label = mod.run_svm()
 
 # One-line alternative with defaults
 test_predict, test_label = mod.create_full_model()
@@ -37,6 +38,7 @@ test_predict, test_label = mod.create_full_model()
 cm = mod.make_confusion_matrix(test_label, test_predict, normalize=False, axis=0, label_names=['Hillary', 'Trump'])
 
 # Save results
+os.system('rm model/*')  # Clear the prior models first
 mod.save_words()
 mod.save_pca()
 mod.save_svm()
@@ -44,10 +46,11 @@ mod.save_svm()
 # ===============================================================================================================
 # Load results
 mod = Analyzer(df_tweets, max_words=max_words, load_pca=True, load_svm=True)
-mod.load_words()
-mod.create_dtm()
-mod.run_pca()
-mod.run_svm()
+
+# mod.load_words()
+# mod.create_dtm()
+# mod.run_pca()
+# mod.run_svm()
 
 # One-line alternative with defaults
 prediction = mod.load_full_model()
