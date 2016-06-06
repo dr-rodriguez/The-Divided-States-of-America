@@ -175,7 +175,8 @@ class TweetLoader:
         self.tweets = self.tweets[self.tweets['user.location'] != u'']
 
         # Search locations
-        self.tweets.reset_index(drop=True, inplace=True)
+        self.tweets.index = range(len(self.tweets))
+        # self.tweets.reset_index(drop=True, inplace=True)
         droplist = []
         for i in range(len(self.tweets)):
             geo = self.tweets.iloc[i]['geo.coordinates']
@@ -238,7 +239,9 @@ class TweetLoader:
         return newdf
 
     def save(self):
-        self.tweets.reset_index(drop=True).to_json(self.path+self.filename)
+        # self.tweets.reset_index(drop=True).to_json(self.path+self.filename)
+        self.tweets.index = range(len(self.tweets))
+        self.tweets.to_json(self.path + self.filename)
         return
 
     def makebackup(self):
