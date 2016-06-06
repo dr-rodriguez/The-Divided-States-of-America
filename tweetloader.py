@@ -11,12 +11,13 @@ import numpy as np
 
 class TweetLoader:
 
-    def __init__(self, screen_name='', filename='tweets.json', track_location=False):
+    def __init__(self, screen_name='', filename='tweets.json', track_location=False, path='data/'):
         self.screen_name = screen_name
         self.tweets = []
         self.columns = ['id', 'text', 'created_at', 'user.screen_name']  # which information to save
         self.track_location = track_location
         self.verbose = False
+        self.path = path
 
         # Save location information
         if track_location:
@@ -213,11 +214,11 @@ class TweetLoader:
         return
 
     def load(self):
-        if not os.path.isfile('data/' + self.filename):
+        if not os.path.isfile(self.path + self.filename):
             print('File does not exist. Create it first.')
             return
 
-        data = pd.read_json('data/' + self.filename)
+        data = pd.read_json(self.path + self.filename)
 
         if len(self.tweets) == 0:
             self.tweets = data
@@ -237,13 +238,13 @@ class TweetLoader:
         return newdf
 
     def save(self):
-        self.tweets.reset_index(drop=True).to_json('data/'+self.filename)
+        self.tweets.reset_index(drop=True).to_json(self.path+self.filename)
         return
 
     def makebackup(self):
-        data = pd.read_json('data/' + self.filename)
+        data = pd.read_json(self.path + self.filename)
         newfile = self.filename[:-5] + '_' + time.strftime("%Y-%m-%d") + '.json'
-        data.to_json('data/backup/' + newfile)
+        data.to_json(self.path + 'backup/' + newfile)
         return
 
 

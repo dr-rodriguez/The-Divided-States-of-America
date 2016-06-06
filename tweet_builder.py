@@ -29,7 +29,7 @@ s.search(query, max_tweets)
 s.save()
 
 # For fun, gather CS19 tweets
-s2 = TweetLoader(filename='coolstars.json', track_location=False)
+s2 = TweetLoader(filename='coolstars.json', track_location=False, path='coolstars19/data/')
 s2.load()
 query = '#CS19'
 s2.search(query, 2000, hard_remove=False, remove_rts=False)

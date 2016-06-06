@@ -17,7 +17,7 @@ class Analyzer:
     Class for carrying out the analysis and model creation/loading
     """
 
-    def __init__(self, data, labels=None, max_words=150, load_pca=False, load_svm=False):
+    def __init__(self, data, labels=None, max_words=150, load_pca=False, load_svm=False, more_stop_words=['']):
         self.data = data  # Data matrix
         self.labels = labels  # Label array
 
@@ -25,10 +25,12 @@ class Analyzer:
         self.dtm = []
         self.top_words = dict()
         self.words = Counter()
+        self.more_stop_words = more_stop_words
 
         self.load_pca = load_pca  # Load or compute the PCA?
         self.pca = None
         self.pcscores = None
+        self.loadings = None
         self.load_squared = None
 
         self.load_svm = load_svm
@@ -41,12 +43,13 @@ class Analyzer:
         self.stop_words = set(stopwords.words('english'))
         self.stop_words.update([s for s in string.punctuation] +
                                [u'\u2014', u'\u2019', u'\u201c', u'\xf3', u'\u201d', u'\u2014@', u'://', u'!"', u'"@',
-                                u'."', u'.@', u'co'])
+                                u'."', u'.@', u'co', u'\u2026', u'&', u'&amp', u'amp'])
 
         # Political terms and Twitter handles to remove
         self.stop_words.update(['hillary', 'clinton', 'donald', 'trump', 'clinton2016',
                                 'trump2016', 'hillary2016', 'makeamericagreatagain'])
         self.stop_words.update(['realdonaldtrump', 'hillaryclinton', 'berniesanders'])
+        self.stop_words.update(self.more_stop_words)
 
     def create_full_model(self):
         self.get_words()
@@ -111,6 +114,7 @@ class Analyzer:
         load_squared.columns = ['PC' + str(i + 1) for i in range(pcscores.shape[1])]
 
         self.pcscores = pcscores
+        self.loadings = loadings
         self.load_squared = load_squared
 
         # Prep for save, just in case

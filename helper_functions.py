@@ -107,10 +107,14 @@ def make_biplot(pcscores, labels, loadings, xval=0, yval=1, max_arrow=0.2):
     scalex = 1.0 / (pcscores.iloc[:, xval].max() - pcscores.iloc[:, xval].min())  # Rescaling to be from -1 to +1
     scaley = 1.0 / (pcscores.iloc[:, yval].max() - pcscores.iloc[:, yval].min())
 
-    plt.plot(pcscores.iloc[:, xval][labels == 0] * scalex, pcscores.iloc[:, yval][labels == 0] * scaley,
-             'bo', alpha=0.6, label='Hillary Clinton')
-    plt.plot(pcscores.iloc[:, xval][labels == 1] * scalex, pcscores.iloc[:, yval][labels == 1] * scaley,
-             'ro', alpha=0.6, label='Donald Trump')
+    if labels is not None:
+        plt.plot(pcscores.iloc[:, xval][labels == 0] * scalex, pcscores.iloc[:, yval][labels == 0] * scaley,
+                 'bo', alpha=0.6, label='Hillary Clinton')
+        plt.plot(pcscores.iloc[:, xval][labels == 1] * scalex, pcscores.iloc[:, yval][labels == 1] * scaley,
+                 'ro', alpha=0.6, label='Donald Trump')
+    else:
+        plt.plot(pcscores.iloc[:, xval] * scalex, pcscores.iloc[:, yval] * scaley,
+                 'bo', alpha=0.6)
 
     for i in range(n):
         # Only plot the longer ones
@@ -126,7 +130,7 @@ def make_biplot(pcscores, labels, loadings, xval=0, yval=1, max_arrow=0.2):
     plt.ylim(-1, 1)
     plt.xlabel('PC{}'.format(xval+1))
     plt.ylabel('PC{}'.format(yval+1))
-    plt.legend(loc='best', numpoints=1)
+    if labels is not None: plt.legend(loc='best', numpoints=1)
     plt.grid()
     plt.show()
 
