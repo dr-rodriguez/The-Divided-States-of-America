@@ -53,21 +53,37 @@ if len(cc)>0:
     lon = lon[good]
     lat = lat[good]
 
-# Make first plot
-state_xs = [states[code]["lons"] for code in states]
-state_ys = [states[code]["lats"] for code in states]
+# Coordinate DataFrame
+df_coords = pd.DataFrame(zip(lat, lon), columns=['lat', 'lon'])
+df_coords = pd.concat([df_coords, s.tweets['user.screen_name'], s.tweets['text'], s.tweets['state']], axis=1,
+                      join_axes=[df_coords.index])
 
-p = figure(title="Twitter Results", toolbar_location="left", plot_width=1100, plot_height=700)
-p.patches(state_xs, state_ys, fill_alpha=0.0, line_color="black", line_width=2, line_alpha=0.3)
+# Group by user
+df_user_mode = s.tweets[['user.screen_name', 'predict']].groupby(by='user.screen_name',
+                                                           sort=False).agg(lambda x: x.value_counts().index[0])
+df_user_count = s.tweets[['user.screen_name', 'predict']].groupby(by='user.screen_name', sort=False).count()
+df_state = s.tweets[['user.screen_name', 'state']].groupby(by='user.screen_name',
+                                                           sort=False).agg(lambda x: x.value_counts().index[0])
+df_user_sum = s.tweets[['user.screen_name', 'predict']].groupby(by='user.screen_name', sort=False).sum()
+df_user_mean = s.tweets[['user.screen_name', 'predict']].groupby(by='user.screen_name', sort=False).mean()
 
-p.scatter(lon, lat)
+# Rename columns and concat
+df_user_count.columns = ['count']
+df_user_sum.columns = ['sum']
+df_user_mean.columns = ['mean']
+df_full = pd.concat([df_user_count, df_user_sum, df_user_mean, df_user_mode, df_state], axis=1, join_axes=[df_user_count.index])
 
-output_file("figures/bokeh_map.html")
-
-show(p)
-
-# Group by state and get average prediction value
-df_predict = s.tweets[['state', 'predict']].groupby(by='state').mean()
+# Group by state and get prediction values
+df_state_mean = df_full[['state', 'predict']].groupby(by='state').mean()
+df_state_mode = df_full[['state', 'predict']].groupby(by='state', sort=False).agg(lambda x: x.value_counts().index[0])
+df_state_count = df_full[['state', 'predict']].groupby(by='state', sort=False).count()
+df_state_sum = df_full[['state', 'predict']].groupby(by='state', sort=False).sum()
+df_state_mean.columns = ['mean']
+df_state_count.columns = ['count']
+df_state_sum.columns = ['Trump']
+df_predict = pd.concat([df_state_mean, df_state_mode, df_state_sum, df_state_count], axis=1, join_axes=[df_state_mean.index])
+df_predict['Clinton'] = df_predict['count'] - df_predict['Trump']
+df_predict['poisson'] = np.sqrt(df_predict['count'])
 
 # Rename 'Washington, D.C.' to 'District of Columbia' to match states list
 state_names = df_predict.index.tolist()
@@ -75,35 +91,36 @@ ind = state_names.index('Washington, D.C.')
 state_names[ind] = 'District of Columbia'
 df_predict.index = state_names
 
-# If tweets matched by state: color-code each state via model prediction
-from bokeh.palettes import RdBu11 as my_palette
-
-low = 0
-high = 1
-range_color = np.linspace(low, high, len(my_palette))
-
+# Color-coded figure by state and model predictions
 p = figure(title="Twitter Results", toolbar_location="left", plot_width=1100, plot_height=700)
 for code in states:
     name = states[code]["name"]
-    color_ind = np.searchsorted(range_color, df_predict.loc[name].values[0], side='left')
-    if color_ind >= len(range_color):
-        color_ind -= 1
+    hcount = df_predict.loc[name, 'Clinton']
+    tcount = df_predict.loc[name, 'Trump']
+    error = df_predict.loc[name, 'poisson']
+    if hcount > tcount:
+        if abs(hcount - tcount) <= error:
+            color = '#92c5de'
+        else:
+            color = '#0571b0'
+    else:
+        if abs(hcount - tcount) <= error:
+            color = '#f4a582'
+        else:
+            color = '#ca0020'
 
-    # print name, df_predict.loc[name].values[0], color_ind
+    # print name, hcount, tcount, error, color
 
-    p.patch(states[code]["lons"], states[code]["lats"], fill_alpha=0.95, color=my_palette[color_ind],
-              line_color="black", line_width=2, line_alpha=0.3)
-
+    p.patch(states[code]["lons"], states[code]["lats"], fill_alpha=0.8, color=color,
+            line_color="black", line_width=2, line_alpha=1)
 
 p.scatter(lon, lat, color='black', alpha=0.6)
 
-legend = generate_colorbar(my_palette, low=low, high=high, plot_width=120, orientation='v')
-layout = hplot(p, legend)
+# Axis modifications
+p.xgrid.grid_line_color=None
+p.ygrid.grid_line_color=None
 
-output_file("figures/US_map_state.html")
+output_file("figures/US_map_state_v2.html")
 
-show(layout)
-
-
-plt.hist(df_predict.values, bins=20)
+show(p)
 
