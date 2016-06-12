@@ -7,6 +7,8 @@ from pandas.io.json import json_normalize
 import matplotlib.pyplot as plt
 from math import sqrt
 import pandas as pd
+import numpy as np
+from bokeh.plotting import figure
 
 # Load and set twitter API authorization
 with open("twitter_secrets.json.nogit") as f:
@@ -148,5 +150,24 @@ def pretty_cm(cm, label_names=['Hillary', 'Trump'], show_sum=True):
     if show_sum:
         print('Sum of columns: {}'.format(cm.sum(axis=0)))
         print('Sum of rows: {}'.format(cm.sum(axis=1)))
+
+
+# Generate color bar
+# Adapted From: http://stackoverflow.com/questions/32614953/can-i-plot-a-colorbar-for-a-bokeh-heatmap
+def generate_colorbar(palette, low=0, high=1, plot_height=700, plot_width=1100, orientation='h'):
+
+    y = np.linspace(low, high, len(palette))
+    dy = y[1]-y[0]
+    if orientation.lower() == 'v':
+        fig = figure(tools="", x_range=[0, 1], y_range=[low, high], plot_width = plot_width, plot_height=plot_height)
+        fig.toolbar_location = None
+        fig.xaxis.visible = None
+        fig.rect(x=0.5, y=y, color=palette, width=1, height=dy)
+    elif orientation.lower() == 'h':
+        fig = figure(tools="", y_range=[0, 1], x_range=[low, high],plot_width = plot_width, plot_height=plot_height)
+        fig.toolbar_location = None
+        fig.yaxis.visible = None
+        fig.rect(x=y, y=0.5, color=palette, width=dy, height=1)
+    return fig
 
 
