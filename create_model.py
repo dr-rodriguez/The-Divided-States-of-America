@@ -34,6 +34,9 @@ mod = Analyzer(df_tweets, label_array, max_words=max_words, load_pca=False, load
 # One-line alternative with defaults
 test_predict, test_label = mod.create_full_model()
 
+# Check a PCA plot
+mod.make_biplot(2, 3, 0.2)
+
 # Check results
 cm = mod.make_confusion_matrix(test_label, test_predict, normalize=False, axis=0, label_names=['Hillary', 'Trump'])
 

@@ -10,6 +10,8 @@ from sklearn.decomposition import PCA
 from sklearn.metrics import confusion_matrix, classification_report
 from sklearn.cross_validation import train_test_split
 from sklearn import svm, grid_search
+import matplotlib.pyplot as plt
+from math import sqrt
 
 
 class Analyzer:
@@ -127,7 +129,7 @@ class Analyzer:
         if not self.load_svm:
             df_train, df_test, train_label, test_label = train_test_split(self.pcscores, self.labels,
                                                                           test_size=0.2, random_state=42)
-            parameters = {'kernel': ('linear', 'rbf'), 'C': [1, 2, 4, 6, 8, 10]}
+            parameters = {'kernel': ['linear','rbf'], 'C': [1, 2, 4, 6, 8, 10]}
             svr = svm.SVC()
             clf = grid_search.GridSearchCV(svr, parameters, cv=5, error_score=0)
             clf.fit(df_train, train_label)
@@ -154,6 +156,53 @@ class Analyzer:
         print(classification_report(test_label, test_predict, target_names=label_names))
 
         return cm
+
+    def make_biplot(self, xval=0, yval=1, max_arrow=0.2):
+        """
+        Create a biplot of the PCA components
+
+        :param xval: PCA component for the x-axis
+        :param yval: PCA component for the y-axis
+        :param max_arrow: Scaling to control how many arrows are plotted
+        :return:
+        """
+
+        # Check if pca has been run
+        if self.pcscores is None:
+            print('Run PCA first')
+            return
+
+        plt.figure()
+        n = self.loadings.shape[1]
+        scalex = 1.0 / (self.pcscores.iloc[:, xval].max() - self.pcscores.iloc[:, xval].min())  # Rescaling to be from -1 to +1
+        scaley = 1.0 / (self.pcscores.iloc[:, yval].max() - self.pcscores.iloc[:, yval].min())
+
+        if self.labels is not None:
+            plt.plot(self.pcscores.iloc[:, xval][self.labels == 0] * scalex, self.pcscores.iloc[:, yval][self.labels == 0] * scaley,
+                     'bo', alpha=0.6, label='Hillary Clinton')
+            plt.plot(self.pcscores.iloc[:, xval][self.labels == 1] * scalex, self.pcscores.iloc[:, yval][self.labels == 1] * scaley,
+                     'ro', alpha=0.6, label='Donald Trump')
+        else:
+            plt.plot(self.pcscores.iloc[:, xval] * scalex, self.pcscores.iloc[:, yval] * scaley,
+                     'bo', alpha=0.6)
+
+        for i in range(n):
+            # Only plot the longer ones
+            length = sqrt(self.loadings.iloc[xval, i]**2 + self.loadings.iloc[yval, i]**2)
+            if length < max_arrow:
+                continue
+
+            plt.arrow(0, 0, self.loadings.iloc[xval, i], self.loadings.iloc[yval, i], color='g', alpha=0.5)
+            plt.text(self.loadings.iloc[xval, i] * 1.15, self.loadings.iloc[yval, i] * 1.15,
+                     self.loadings.columns.tolist()[i], color='k', ha='center', va='center')
+
+        plt.xlim(-1, 1)
+        plt.ylim(-1, 1)
+        plt.xlabel('PC{}'.format(xval+1))
+        plt.ylabel('PC{}'.format(yval+1))
+        if self.labels is not None: plt.legend(loc='best', numpoints=1)
+        plt.grid()
+        plt.show()
 
 
 def pretty_cm(cm, label_names=['Hillary', 'Trump'], show_sum=False):
