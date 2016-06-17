@@ -5,6 +5,7 @@ from analysis import Analyzer
 from tweetloader import TweetLoader
 from bokeh.plotting import figure, show, output_file, vplot, hplot
 from bokeh.sampledata.us_states import data as states
+from bokeh.models import ColumnDataSource, HoverTool
 import reverse_geocoder as rg
 import pandas as pd
 import numpy as np
@@ -108,16 +109,21 @@ for code in states:
         else:
             color = '#ca0020'
 
-    # print name, hcount, tcount, error, color
-
     p.patch(states[code]["lons"], states[code]["lats"], fill_alpha=0.8, color=color,
             line_color="black", line_width=2, line_alpha=1)
 
-p.scatter(lon, lat, color='black', alpha=0.6)
+# Add tweets with on-hover text
+data = pd.DataFrame({'lat':lat, 'lon':lon, 'user':s.tweets['user.screen_name'], 'text':s.tweets['text'],
+                     'predict':s.tweets['predict'], 'state':s.tweets['state']})
+data = data.replace({'predict': {0: 'Hillary', 1: 'Trump'}})
+source = ColumnDataSource(data=data)
+p.scatter('lon', 'lat', source=source, color='black', alpha=0.8, size=4)
+tooltip = {"User": "@user", "Text": "@text", "Prediction": "@predict", 'State': '@state'}
+p.add_tools(HoverTool(tooltips=tooltip))
 
 # Axis modifications
-p.xgrid.grid_line_color=None
-p.ygrid.grid_line_color=None
+p.xgrid.grid_line_color = None
+p.ygrid.grid_line_color = None
 
 output_file("figures/US_map_state.html")
 
@@ -129,5 +135,5 @@ s.tweets[s.tweets['predict'] == 0]['text'].sample(10)  # Hillary
 s.tweets[s.tweets['predict'] == 1]['text'].sample(10)  # Trump
 
 # Compare with some states as well
-s.tweets[(s.tweets['predict'] == 1) & (s.tweets['state'] == 'Arizona')]['text'].sample(10)  # Trump
+s.tweets[(s.tweets['predict'] == 1) & (s.tweets['state'] == 'New Mexico')]['text'].sample(10)  # Trump
 pd.reset_option('max_colwidth')
