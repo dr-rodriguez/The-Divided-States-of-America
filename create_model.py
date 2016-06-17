@@ -7,7 +7,7 @@ import numpy as np
 import os
 
 # Some global defaults
-max_words = 150
+max_words = 200
 
 # Load most recent tweets from Hillary Clinton and Donald Trump
 h = TweetLoader('HillaryClinton')

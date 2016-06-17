@@ -8,10 +8,9 @@ from bokeh.sampledata.us_states import data as states
 import reverse_geocoder as rg
 import pandas as pd
 import numpy as np
-from helper_functions import generate_colorbar
 
 # Some global defaults
-max_words = 150
+max_words = 200
 
 # Load most recent tweets from Hillary Clinton and Donald Trump
 s = TweetLoader(filename='search.json', track_location=True)
@@ -120,7 +119,15 @@ p.scatter(lon, lat, color='black', alpha=0.6)
 p.xgrid.grid_line_color=None
 p.ygrid.grid_line_color=None
 
-output_file("figures/US_map_state_v2.html")
+output_file("figures/US_map_state.html")
 
 show(p)
 
+# Compare some tweets
+pd.set_option('max_colwidth', 200)
+s.tweets[s.tweets['predict'] == 0]['text'].sample(10)  # Hillary
+s.tweets[s.tweets['predict'] == 1]['text'].sample(10)  # Trump
+
+# Compare with some states as well
+s.tweets[(s.tweets['predict'] == 1) & (s.tweets['state'] == 'Arizona')]['text'].sample(10)  # Trump
+pd.reset_option('max_colwidth')

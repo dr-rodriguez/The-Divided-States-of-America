@@ -152,6 +152,10 @@ def pretty_cm(cm, label_names=['Hillary', 'Trump'], show_sum=True):
         print('Sum of rows: {}'.format(cm.sum(axis=1)))
 
 
+def get_tweets_label(df, label, size=10, colname='predict'):
+    temp_df = df[colname] == label
+    return df[temp_df].sample(size)
+
 # Generate color bar
 # Adapted From: http://stackoverflow.com/questions/32614953/can-i-plot-a-colorbar-for-a-bokeh-heatmap
 def generate_colorbar(palette, low=0, high=1, plot_height=700, plot_width=1100, orientation='h'):
