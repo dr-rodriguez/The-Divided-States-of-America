@@ -45,8 +45,8 @@ t = TweetLoader('realDonaldTrump', track_location=False)
 t.load()
 
 # Hillary cloud
-make_cloud(h.tweets['text'], 'logos/DemocraticLogo.png', 10, 'figures/clinton_cloud.png')
+make_cloud(h.tweets['text'], 'logos/DemocraticLogo2.png', 10, 'figures/clinton_cloud2.png')
 
 # Trump cloud
-make_cloud(t.tweets['text'], 'logos/RepublicanLogo.png', 10, 'figures/trump_cloud.png')
+make_cloud(t.tweets['text'], 'logos/RepublicanLogo2.png', 10, 'figures/trump_cloud2.png')
 
