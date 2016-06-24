@@ -24,7 +24,7 @@ bs.save()
 # Search results
 s = TweetLoader(filename='search.json', track_location=True)
 s.load()
-query = 'politic OR trump OR hillary OR clinton OR election'
+query = 'politic OR trump OR hillary OR clinton OR election OR politics'
 s.search(query, max_tweets)
 s.save()
 
