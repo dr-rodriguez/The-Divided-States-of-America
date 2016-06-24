@@ -13,7 +13,7 @@ from sklearn import svm, grid_search
 import matplotlib.pyplot as plt
 from math import sqrt
 
-
+# TODO: Look into adding some form of sentiment analysis
 class Analyzer:
     """
     Class for carrying out the analysis and model creation/loading
@@ -45,7 +45,8 @@ class Analyzer:
         self.stop_words = set(stopwords.words('english'))
         self.stop_words.update([s for s in string.punctuation] +
                                [u'\u2014', u'\u2019', u'\u201c', u'\xf3', u'\u201d', u'\u2014@', u'://', u'!"', u'"@',
-                                u'."', u'.@', u'co', u'\u2026', u'&', u'&amp', u'amp'])
+                                u'."', u'.@', u'co', u'\u2026', u'&', u'&amp', u'amp', u'...', u'.\u201d', u'000',
+                                u'\xed'])
 
         # Political terms and Twitter handles to remove
         self.stop_words.update(['hillary', 'clinton', 'donald', 'trump', 'clinton2016',

@@ -131,9 +131,12 @@ show(p)
 
 # Compare some tweets
 pd.set_option('max_colwidth', 200)
-s.tweets[s.tweets['predict'] == 0]['text'].sample(10)  # Hillary
-s.tweets[s.tweets['predict'] == 1]['text'].sample(10)  # Trump
+print('Hillary Matches')
+print s.tweets[s.tweets['predict'] == 0]['text'].sample(10)  # Hillary
+print('Trump Matches')
+print s.tweets[s.tweets['predict'] == 1]['text'].sample(10)  # Trump
 
 # Compare with some states as well
-s.tweets[(s.tweets['predict'] == 1) & (s.tweets['state'] == 'New Mexico')]['text'].sample(10)  # Trump
+print('Trump Matches in New York')
+print s.tweets[(s.tweets['predict'] == 1) & (s.tweets['state'] == 'New York')]['text'].sample(10)  # Trump
 pd.reset_option('max_colwidth')
