@@ -116,7 +116,6 @@ class Analyzer:
 
         self.dtm = dtm
 
-# TODO: Consider saving positivity = pos-neg
     def get_sentiment(self):
         # Load up the NRC emotion lexicon
         filename = 'data/NRC-emotion-lexicon-wordlevel-alphabetized-v0.92.txt'
@@ -126,7 +125,7 @@ class Analyzer:
         positive_words = data[(data['affect'] == 'positive') & (data['flag'] == 1)]['word'].tolist()
         negative_words = data[(data['affect'] == 'negative') & (data['flag'] == 1)]['word'].tolist()
 
-        pos, neg = [], []
+        pos, neg, positivity = [], [], []
         pos_words, neg_words = [], []
         for text in self.data:  # Note no stemming or it may fail to match words
             words = Counter([i.lower() for i in wordpunct_tokenize(text)
@@ -137,7 +136,9 @@ class Analyzer:
             neg.append(len(y))
             pos_words.append(x)
             neg_words.append(y)
-        self.sentiment = pd.DataFrame({'pos':pos, 'neg':neg, 'pos_words': pos_words, 'neg_words': neg_words})
+            positivity.append(len(x) - len(y))
+        self.sentiment = pd.DataFrame({'pos': pos, 'neg': neg, 'pos_words': pos_words,
+                                       'neg_words': neg_words, 'positivity': positivity})
 
     def run_pca(self, filename='pca.pkl'):
         df_dtm = pd.DataFrame(self.dtm, columns=self.top_words.keys())
