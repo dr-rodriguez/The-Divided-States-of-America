@@ -116,6 +116,7 @@ class Analyzer:
 
         self.dtm = dtm
 
+# TODO: Consider saving positivity = pos-neg
     def get_sentiment(self):
         # Load up the NRC emotion lexicon
         filename = 'data/NRC-emotion-lexicon-wordlevel-alphabetized-v0.92.txt'

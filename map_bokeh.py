@@ -125,6 +125,8 @@ p.add_tools(HoverTool(tooltips=tooltip))
 p.xgrid.grid_line_color = None
 p.ygrid.grid_line_color = None
 
+# TODO: Add axes labels
+
 output_file("figures/US_map_state.html")
 
 show(p)
