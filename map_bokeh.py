@@ -73,7 +73,7 @@ df_user_sum.columns = ['sum']
 df_user_mean.columns = ['mean']
 df_full = pd.concat([df_user_count, df_user_sum, df_user_mean, df_user_mode, df_state], axis=1, join_axes=[df_user_count.index])
 
-# Group by state and get prediction values
+# Group by state and get prediction values (mode of user prediction values)
 df_state_mean = df_full[['state', 'predict']].groupby(by='state').mean()
 df_state_mode = df_full[['state', 'predict']].groupby(by='state', sort=False).agg(lambda x: x.value_counts().index[0])
 df_state_count = df_full[['state', 'predict']].groupby(by='state', sort=False).count()
@@ -113,8 +113,8 @@ for code in states:
             line_color="black", line_width=2, line_alpha=1)
 
 # Add tweets with on-hover text
-data = pd.DataFrame({'lat':lat, 'lon':lon, 'user':s.tweets['user.screen_name'], 'text':s.tweets['text'],
-                     'predict':s.tweets['predict'], 'state':s.tweets['state']})
+data = pd.DataFrame({'lat': lat, 'lon': lon, 'user': s.tweets['user.screen_name'], 'text': s.tweets['text'],
+                     'predict': s.tweets['predict'], 'state': s.tweets['state']})
 data = data.replace({'predict': {0: 'Hillary', 1: 'Trump'}})
 source = ColumnDataSource(data=data)
 p.scatter('lon', 'lat', source=source, color='black', alpha=0.8, size=4)
@@ -140,3 +140,16 @@ print s.tweets[s.tweets['predict'] == 1]['text'].sample(10)  # Trump
 print('Trump Matches in New York')
 print s.tweets[(s.tweets['predict'] == 1) & (s.tweets['state'] == 'New York')]['text'].sample(10)  # Trump
 pd.reset_option('max_colwidth')
+
+# Checking most prolific tweeters
+print('Most prolific tweeters:')
+df_full[['count', 'mean', 'predict']]\
+    .replace({'predict': {0: 'Hillary', 1: 'Trump'}})\
+    .sort_values(by='count', ascending=False)\
+    .head(15)
+
+# Checking a user's tweets
+user_check = 'WashPress'
+print("Checking {}'s tweets".format(user_check))
+print s.tweets[s.tweets['user.screen_name'] == user_check][['text', 'predict']]\
+    .replace({'predict': {0: 'Hillary', 1: 'Trump'}})
