@@ -24,11 +24,12 @@ df_tweets = pd.concat([h.tweets['text'], t.tweets['text']], axis=0, join='outer'
                       ignore_index=True, keys=None, levels=None, names=None, verify_integrity=False)
 
 # Using the Analyzer class
-mod = Analyzer(df_tweets, label_array, max_words=max_words, load_pca=False, load_svm=False)
+mod = Analyzer(df_tweets, label_array, max_words=max_words, load_pca=False, load_svm=False, use_sentiment=True)
 
 # mod.get_words()
 # mod.create_dtm()
 # mod.run_pca()
+# mod.get_sentiment()
 # test_predict, test_label = mod.run_svm()
 
 # One-line alternative with defaults

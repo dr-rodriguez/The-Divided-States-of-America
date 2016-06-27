@@ -19,22 +19,30 @@ class Analyzer:
     Class for carrying out the analysis and model creation/loading
     """
 
-    def __init__(self, data, labels=None, max_words=150, load_pca=False, load_svm=False, more_stop_words=['']):
+    def __init__(self, data, labels=None, max_words=150, load_pca=False, load_svm=False, more_stop_words=[''],
+                 use_sentiment=True):
         self.data = data  # Data matrix
         self.labels = labels  # Label array
 
+        # Text Mining
         self.max_words = max_words
         self.dtm = []
         self.top_words = dict()
         self.words = Counter()
         self.more_stop_words = more_stop_words
 
+        # Principal Component Analysis
         self.load_pca = load_pca  # Load or compute the PCA?
         self.pca = None
         self.pcscores = None
         self.loadings = None
         self.load_squared = None
 
+        # Sentiment analysis
+        self.sentiment = None
+        self.use_sentiment = use_sentiment
+
+        # Support Vector Machine Classifier
         self.load_svm = load_svm
         self.svc = None
 
@@ -55,15 +63,23 @@ class Analyzer:
         self.stop_words.update(self.more_stop_words)
 
     def create_full_model(self):
+        print('Getting top {} words...'.format(self.max_words))
         self.get_words()
+        print('Creating document term matrix...')
         self.create_dtm()
+        print('Running Principal Component Analysis...')
         self.run_pca()
+        if self.use_sentiment:
+            print('Running Sentiment Analysis...')
+            self.get_sentiment()
+        print('Running Support Vector Machine Classifier...')
         return self.run_svm()
 
     def load_full_model(self):
         self.load_words()
         self.create_dtm()
         self.run_pca()
+        self.get_sentiment()
         return self.run_svm()
 
     def get_words(self):
@@ -77,6 +93,7 @@ class Analyzer:
         joblib.dump(self.top_words, 'model/'+filename)
 
     def load_words(self, filename='words.pkl'):
+        print('Loading model/{}'.format(filename))
         self.top_words = joblib.load('model/'+filename)
 
     def create_dtm(self):
@@ -98,6 +115,28 @@ class Analyzer:
             dtm.append(newrow)
 
         self.dtm = dtm
+
+    def get_sentiment(self):
+        # Load up the NRC emotion lexicon
+        filename = 'data/NRC-emotion-lexicon-wordlevel-alphabetized-v0.92.txt'
+
+        data = pd.read_csv(filename, delim_whitespace=True, skiprows=45, header=None, names=['word', 'affect', 'flag'])
+
+        positive_words = data[(data['affect'] == 'positive') & (data['flag'] == 1)]['word'].tolist()
+        negative_words = data[(data['affect'] == 'negative') & (data['flag'] == 1)]['word'].tolist()
+
+        pos, neg = [], []
+        pos_words, neg_words = [], []
+        for text in self.data:  # Note no stemming or it may fail to match words
+            words = Counter([i.lower() for i in wordpunct_tokenize(text)
+                         if i.lower() not in self.stop_words and not i.lower().startswith('http')])
+            x = set(positive_words).intersection(words.keys())
+            y = set(negative_words).intersection(words.keys())
+            pos.append(len(x))
+            neg.append(len(y))
+            pos_words.append(x)
+            neg_words.append(y)
+        self.sentiment = pd.DataFrame({'pos':pos, 'neg':neg, 'pos_words': pos_words, 'neg_words': neg_words})
 
     def run_pca(self, filename='pca.pkl'):
         df_dtm = pd.DataFrame(self.dtm, columns=self.top_words.keys())
@@ -126,11 +165,17 @@ class Analyzer:
     def save_pca(self, filename='pca.pkl'):
         joblib.dump(self.pca, 'model/' + filename)
 
+# TODO: Consider adding data scaling to SVM model
     def run_svm(self, filename='svm.pkl'):
         if not self.load_svm:
-            df_train, df_test, train_label, test_label = train_test_split(self.pcscores, self.labels,
+            if self.use_sentiment:
+                self.pcscores.index = range(len(self.pcscores))
+                data = pd.concat([self.pcscores, self.sentiment[['pos', 'neg']]], axis=1)
+            else:
+                data = self.pcscores
+            df_train, df_test, train_label, test_label = train_test_split(data, self.labels,
                                                                           test_size=0.2, random_state=42)
-            parameters = {'kernel': ['linear','rbf'], 'C': [1, 2, 4, 6, 8, 10]}
+            parameters = {'kernel': ['linear', 'rbf'], 'C': [0.01, 0.1, 1, 10, 100]}
             svr = svm.SVC()
             clf = grid_search.GridSearchCV(svr, parameters, cv=5, error_score=0)
             clf.fit(df_train, train_label)
@@ -141,7 +186,12 @@ class Analyzer:
         else:
             print('Loading model/{}'.format(filename))
             clf = joblib.load('model/'+filename)
-            prediction = clf.predict(self.pcscores)
+            if self.use_sentiment:
+                self.pcscores.index = range(len(self.pcscores))
+                data = pd.concat([self.pcscores, self.sentiment[['pos', 'neg']]], axis=1)
+            else:
+                data = self.pcscores
+            prediction = clf.predict(data)
             self.svc = clf
             return prediction
 
@@ -213,7 +263,4 @@ def pretty_cm(cm, label_names=['Hillary', 'Trump'], show_sum=False):
         print('Sum of columns: {}'.format(cm.sum(axis=0)))
         print('Sum of rows: {}'.format(cm.sum(axis=1)))
     print('')
-
-
-
 
