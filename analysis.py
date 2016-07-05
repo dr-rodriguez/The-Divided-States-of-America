@@ -79,7 +79,7 @@ class Analyzer:
         self.load_words()
         self.create_dtm()
         self.run_pca()
-        self.get_sentiment()
+        if self.use_sentiment: self.get_sentiment()
         return self.run_svm()
 
     def get_words(self):
@@ -97,6 +97,7 @@ class Analyzer:
         self.top_words = joblib.load('model/'+filename)
 
     def create_dtm(self):
+        # This may technically be a term-document matrix
         dtm = []
         for tweet in self.data:
 
@@ -122,23 +123,21 @@ class Analyzer:
 
         data = pd.read_csv(filename, delim_whitespace=True, skiprows=45, header=None, names=['word', 'affect', 'flag'])
 
-        positive_words = data[(data['affect'] == 'positive') & (data['flag'] == 1)]['word'].tolist()
-        negative_words = data[(data['affect'] == 'negative') & (data['flag'] == 1)]['word'].tolist()
+        emotion_words = dict()
+        emotion_map = dict()
+        affects = ['positive', 'negative', 'anger', 'anticipation', 'disgust',
+                   'fear', 'joy', 'sadness', 'surprise', 'trust']
+        for key in affects:
+            emotion_words[key] = data[(data['affect'] == key) & (data['flag'] == 1)]['word'].tolist()
+            emotion_map[key] = list()
 
-        pos, neg, positivity = [], [], []
-        pos_words, neg_words = [], []
         for text in self.data:  # Note no stemming or it may fail to match words
             words = Counter([i.lower() for i in wordpunct_tokenize(text)
                          if i.lower() not in self.stop_words and not i.lower().startswith('http')])
-            x = set(positive_words).intersection(words.keys())
-            y = set(negative_words).intersection(words.keys())
-            pos.append(len(x))
-            neg.append(len(y))
-            pos_words.append(x)
-            neg_words.append(y)
-            positivity.append(len(x) - len(y))
-        self.sentiment = pd.DataFrame({'pos': pos, 'neg': neg, 'pos_words': pos_words,
-                                       'neg_words': neg_words, 'positivity': positivity})
+            for key in emotion_words.keys():
+                x = set(emotion_words[key]).intersection(words.keys())
+                emotion_map[key].append(len(x))
+        self.sentiment = pd.DataFrame(emotion_map)
 
     def run_pca(self, filename='pca.pkl'):
         df_dtm = pd.DataFrame(self.dtm, columns=self.top_words.keys())
@@ -167,12 +166,11 @@ class Analyzer:
     def save_pca(self, filename='pca.pkl'):
         joblib.dump(self.pca, 'model/' + filename)
 
-# TODO: Consider adding data scaling to SVM model
     def run_svm(self, filename='svm.pkl'):
         if not self.load_svm:
             if self.use_sentiment:
                 self.pcscores.index = range(len(self.pcscores))
-                data = pd.concat([self.pcscores, self.sentiment[['pos', 'neg']]], axis=1)
+                data = pd.concat([self.pcscores, self.sentiment], axis=1)
             else:
                 data = self.pcscores
             df_train, df_test, train_label, test_label = train_test_split(data, self.labels,
@@ -190,7 +188,7 @@ class Analyzer:
             clf = joblib.load('model/'+filename)
             if self.use_sentiment:
                 self.pcscores.index = range(len(self.pcscores))
-                data = pd.concat([self.pcscores, self.sentiment[['pos', 'neg']]], axis=1)
+                data = pd.concat([self.pcscores, self.sentiment], axis=1)
             else:
                 data = self.pcscores
             prediction = clf.predict(data)

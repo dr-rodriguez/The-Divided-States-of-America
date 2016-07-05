@@ -45,6 +45,7 @@ cm = mod.make_confusion_matrix(test_label, test_predict, normalize=False, axis=0
 # Examine sentiments
 df = pd.concat([df_tweets, mod.sentiment, pd.DataFrame({'label': label_array})], axis=1)
 
+df['positivity'] = df['positive'] - df['negative']
 bins = [s-5 for s in range(11)]
 plt.hist(df[df['label'] == 0]['positivity'], bins=bins, color='blue', alpha=0.6, label='Hillary Clinton')
 plt.hist(df[df['label'] == 1]['positivity'], bins=bins, color='red', alpha=0.6, label='Donald Trump')
