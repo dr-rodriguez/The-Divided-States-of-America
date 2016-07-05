@@ -36,7 +36,7 @@ fig, ax = plt.subplots()
 
 # Chart tweets with time
 startdate = '2016-4-30'
-enddate = '2016-6-30'
+enddate = '2016-7-05'
 freq = 'D'
 count_and_plot(h.tweets, ax, start=startdate, end=enddate, freq=freq, color='blue')
 count_and_plot(t.tweets, ax, start=startdate, end=enddate, freq=freq, color='red')
