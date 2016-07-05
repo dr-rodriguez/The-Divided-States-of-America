@@ -66,3 +66,13 @@ plt.xticks(rotation='vertical')
 plt.tight_layout()
 ax.legend((rects1[0], rects2[0]), ('Hillary Clinton', 'Donald Trump'), loc='best')
 plt.savefig('figures/sentiment_normalized.png')
+
+# Positivity distribution
+df['positivity'] = df['positive'] - df['negative']
+bins = [s-5 for s in range(11)]
+plt.hist(df[df['label'] == 0]['positivity'], bins=bins, color='blue', alpha=0.6, label='Hillary Clinton')
+plt.hist(df[df['label'] == 1]['positivity'], bins=bins, color='red', alpha=0.6, label='Donald Trump')
+plt.legend()
+plt.xlabel('Positivity')
+plt.ylabel('Number of Tweets')
+plt.savefig('figures/positivity_distribution.png')

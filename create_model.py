@@ -42,18 +42,6 @@ mod.make_biplot(2, 3, 0.2)
 # Check results
 cm = mod.make_confusion_matrix(test_label, test_predict, normalize=False, axis=0, label_names=['Hillary', 'Trump'])
 
-# Examine sentiments
-df = pd.concat([df_tweets, mod.sentiment, pd.DataFrame({'label': label_array})], axis=1)
-
-df['positivity'] = df['positive'] - df['negative']
-bins = [s-5 for s in range(11)]
-plt.hist(df[df['label'] == 0]['positivity'], bins=bins, color='blue', alpha=0.6, label='Hillary Clinton')
-plt.hist(df[df['label'] == 1]['positivity'], bins=bins, color='red', alpha=0.6, label='Donald Trump')
-plt.legend()
-plt.xlabel('Positivity')
-plt.ylabel('Number of Tweets')
-plt.savefig('figures/positivity_distribution.png')
-
 # Save model results
 os.system('rm model/*')  # Clear the prior models first
 mod.save_words()
