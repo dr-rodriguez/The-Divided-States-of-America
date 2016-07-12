@@ -39,9 +39,11 @@ def make_cloud(text, image, size=10, filename='figures/cloud.png', max_words=200
     plt.savefig(filename)
 
 # Load tweets
-h = TweetLoader('HillaryClinton', track_location=False)
+# h = TweetLoader('HillaryClinton')
+# t = TweetLoader('realDonaldTrump')
+h = TweetLoader('', path='data/backup/', filename='hillary_2016-07-06.json')
+t = TweetLoader('', path='data/backup/', filename='trump_2016-07-06.json')
 h.load()
-t = TweetLoader('realDonaldTrump', track_location=False)
 t.load()
 
 # Hillary cloud

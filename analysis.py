@@ -208,7 +208,7 @@ class Analyzer:
 
         return cm
 
-    def make_biplot(self, xval=0, yval=1, max_arrow=0.2):
+    def make_biplot(self, xval=0, yval=1, max_arrow=0.2, save=False, alpha=0.6):
         """
         Create a biplot of the PCA components
 
@@ -230,12 +230,12 @@ class Analyzer:
 
         if self.labels is not None:
             plt.plot(self.pcscores.iloc[:, xval][self.labels == 0] * scalex, self.pcscores.iloc[:, yval][self.labels == 0] * scaley,
-                     'bo', alpha=0.6, label='Hillary Clinton')
+                     'bo', alpha=alpha, label='Hillary Clinton')
             plt.plot(self.pcscores.iloc[:, xval][self.labels == 1] * scalex, self.pcscores.iloc[:, yval][self.labels == 1] * scaley,
-                     'ro', alpha=0.6, label='Donald Trump')
+                     'ro', alpha=alpha, label='Donald Trump')
         else:
             plt.plot(self.pcscores.iloc[:, xval] * scalex, self.pcscores.iloc[:, yval] * scaley,
-                     'bo', alpha=0.6)
+                     'bo', alpha=alpha)
 
         for i in range(n):
             # Only plot the longer ones
@@ -253,6 +253,7 @@ class Analyzer:
         plt.ylabel('PC{}'.format(yval+1))
         if self.labels is not None: plt.legend(loc='best', numpoints=1)
         plt.grid()
+        if save: plt.savefig(save)
         plt.show()
 
 

@@ -7,11 +7,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Load most recent tweets from Hillary Clinton and Donald Trump
-h = TweetLoader('HillaryClinton')
-t = TweetLoader('realDonaldTrump')
-
+# h = TweetLoader('HillaryClinton')
+# t = TweetLoader('realDonaldTrump')
+h = TweetLoader('', path='data/backup/', filename='hillary_2016-07-06.json')
+t = TweetLoader('', path='data/backup/', filename='trump_2016-07-06.json')
 h.load()
 t.load()
+
 
 # Assign label (second array) for Hillary(0)/Trump(1) tweets
 label_array = np.array([0]*len(h.tweets) + [1]*len(t.tweets))
@@ -32,6 +34,11 @@ print df.sort_values(by='positive', ascending=False)[df['label'] == 1]['text'].v
 
 print df.sort_values(by='negative', ascending=False)[df['label'] == 0]['text'].values[0]
 print df.sort_values(by='negative', ascending=False)[df['label'] == 1]['text'].values[0]
+
+print df.sort_values(by='fear', ascending=False)[df['label'] == 0]['text'].values[0]
+# print df.sort_values(by='fear', ascending=False)[df['label'] == 1]['text'].values[0]
+# print df.sort_values(by='disgust', ascending=False)[df['label'] == 0]['text'].values[0]
+print df.sort_values(by='disgust', ascending=False)[df['label'] == 1]['text'].values[0]
 
 # Tally up the results
 results = df.groupby(by='label', sort=False).sum()
