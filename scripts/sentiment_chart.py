@@ -26,19 +26,24 @@ mod = Analyzer(df_tweets, label_array)
 mod.get_sentiment()
 
 # Group together tweets, labels, and sentiments
-df = pd.concat([df_tweets, mod.sentiment, pd.DataFrame({'label': label_array})], axis=1)
+temp = pd.concat([h.tweets, t.tweets], axis=0, join='outer', join_axes=None, ignore_index=True, levels=None)
+df = pd.concat([temp, mod.sentiment, pd.DataFrame({'label': label_array})], axis=1, levels=None)
+
+
+# Get Tweet text and URLs for embedding: https://twitter.com/{user}/status/{id}
+def print_and_get_url(tweet):
+    print tweet['text'].values[0]
+    print 'https://twitter.com/{}/status/{}'.format(tweet['user.screen_name'].values[0], tweet['id'].values[0])
 
 # Most positive and negative tweet
-print df.sort_values(by='positive', ascending=False)[df['label'] == 0]['text'].values[0]
-print df.sort_values(by='positive', ascending=False)[df['label'] == 1]['text'].values[0]
+print_and_get_url(df.sort_values(by='positive', ascending=False)[df['label'] == 0])
+print_and_get_url(df.sort_values(by='positive', ascending=False)[df['label'] == 1])
+print_and_get_url(df.sort_values(by='negative', ascending=False)[df['label'] == 0])
+print_and_get_url(df.sort_values(by='negative', ascending=False)[df['label'] == 1])
 
-print df.sort_values(by='negative', ascending=False)[df['label'] == 0]['text'].values[0]
-print df.sort_values(by='negative', ascending=False)[df['label'] == 1]['text'].values[0]
+print_and_get_url(df.sort_values(by='fear', ascending=False)[df['label'] == 0])
+print_and_get_url(df.sort_values(by='disgust', ascending=False)[df['label'] == 1])
 
-print df.sort_values(by='fear', ascending=False)[df['label'] == 0]['text'].values[0]
-# print df.sort_values(by='fear', ascending=False)[df['label'] == 1]['text'].values[0]
-# print df.sort_values(by='disgust', ascending=False)[df['label'] == 0]['text'].values[0]
-print df.sort_values(by='disgust', ascending=False)[df['label'] == 1]['text'].values[0]
 
 # Tally up the results
 results = df.groupby(by='label', sort=False).sum()
