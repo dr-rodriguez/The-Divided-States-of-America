@@ -97,7 +97,6 @@ class Analyzer:
         self.top_words = joblib.load('model/'+filename)
 
     def create_dtm(self):
-        # This may technically be a term-document matrix
         dtm = []
         for tweet in self.data:
 

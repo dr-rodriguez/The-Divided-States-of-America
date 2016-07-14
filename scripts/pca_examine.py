@@ -9,8 +9,8 @@ import numpy as np
 # Load the tweets
 # h = TweetLoader('HillaryClinton')
 # t = TweetLoader('realDonaldTrump')
-h = TweetLoader('', path='data/backup/', filename='hillary_2016-07-06.json')
-t = TweetLoader('', path='data/backup/', filename='trump_2016-07-06.json')
+h = TweetLoader('', path='data/backup/', filename='hillary_2016-07-13.json')
+t = TweetLoader('', path='data/backup/', filename='trump_2016-07-13.json')
 h.load()
 t.load()
 
@@ -95,6 +95,6 @@ output_file("figures/pca_factors.html", title="PCA Loading Factors")
 show(p)
 
 # Examine via biplot
-mod.make_biplot(0, 3, max_arrow=0.2, save='figures/biplot_0_3.png')
-mod.make_biplot(4, 15, max_arrow=0.3, save='figures/biplot_4_15.png')
+mod.make_biplot(0, 3, max_arrow=0.2, save='figures/biplot_0_3.png', alpha=0.5)
+mod.make_biplot(4, 15, max_arrow=0.3, save='figures/biplot_4_15.png', alpha=0.5)
 

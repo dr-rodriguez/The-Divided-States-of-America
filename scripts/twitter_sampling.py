@@ -19,16 +19,18 @@ def count_and_plot(raw, ax, start='2016-1-1', end='2016-6-24', freq='D', color='
     return df
 
 
-h = TweetLoader('HillaryClinton', track_location=False)
+# h = TweetLoader('HillaryClinton')
+# t = TweetLoader('realDonaldTrump')
+h = TweetLoader('', path='data/backup/', filename='hillary_2016-07-13.json')
+t = TweetLoader('', path='data/backup/', filename='trump_2016-07-13.json')
 h.load()
-
-t = TweetLoader('realDonaldTrump', track_location=False)
 t.load()
 
-bs = TweetLoader('BernieSanders', filename='sanders.json', track_location=False)
-bs.load()
+# bs = TweetLoader('BernieSanders', filename='sanders.json', track_location=False)
+# bs.load()
 
-s = TweetLoader(filename='search.json', track_location=True)
+# s = TweetLoader(filename='search.json', track_location=True)
+s = TweetLoader(filename='search_2016-07-13.json', track_location=True, path='data/backup/')
 s.load()
 
 # Prepare plot
@@ -36,7 +38,7 @@ fig, ax = plt.subplots()
 
 # Chart tweets with time
 startdate = '2016-4-30'
-enddate = '2016-7-05'
+enddate = '2016-7-15'
 freq = 'D'
 count_and_plot(h.tweets, ax, start=startdate, end=enddate, freq=freq, color='blue')
 count_and_plot(t.tweets, ax, start=startdate, end=enddate, freq=freq, color='red')

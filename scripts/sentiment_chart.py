@@ -9,8 +9,8 @@ import matplotlib.pyplot as plt
 # Load most recent tweets from Hillary Clinton and Donald Trump
 # h = TweetLoader('HillaryClinton')
 # t = TweetLoader('realDonaldTrump')
-h = TweetLoader('', path='data/backup/', filename='hillary_2016-07-06.json')
-t = TweetLoader('', path='data/backup/', filename='trump_2016-07-06.json')
+h = TweetLoader('', path='data/backup/', filename='hillary_2016-07-13.json')
+t = TweetLoader('', path='data/backup/', filename='trump_2016-07-13.json')
 h.load()
 t.load()
 
@@ -52,6 +52,9 @@ normalized.loc[0] = normalized.loc[0]/len(h.tweets)
 normalized.loc[1] = normalized.loc[1]/len(t.tweets)
 results.index = ['Clinton', 'Trump']
 normalized.index = ['Clinton', 'Trump']
+# Drop extra columns
+results.drop(['id', 'index', 'level_0'], axis=1, inplace=True)
+normalized.drop(['id', 'index', 'level_0'], axis=1, inplace=True)
 
 # Chart the results
 ind = np.arange(10)
@@ -82,9 +85,9 @@ plt.savefig('figures/sentiment_normalized.png')
 # Positivity distribution
 df['positivity'] = df['positive'] - df['negative']
 bins = [s-5 for s in range(11)]
-plt.hist(df[df['label'] == 0]['positivity'], bins=bins, color='blue', alpha=0.6, label='Hillary Clinton')
-plt.hist(df[df['label'] == 1]['positivity'], bins=bins, color='red', alpha=0.6, label='Donald Trump')
+plt.hist(df[df['label'] == 0]['positivity'], bins=bins, color='blue', alpha=0.6, label='Hillary Clinton', normed=True)
+plt.hist(df[df['label'] == 1]['positivity'], bins=bins, color='red', alpha=0.6, label='Donald Trump', normed=True)
 plt.legend()
 plt.xlabel('Positivity')
-plt.ylabel('Number of Tweets')
+plt.ylabel('Fraction of Tweets')
 plt.savefig('figures/positivity_distribution.png')
