@@ -5,6 +5,9 @@ import pandas as pd
 from bokeh.plotting import figure, show, output_file
 from bokeh.models import HoverTool, ColumnDataSource
 import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+sns.set_style('whitegrid')
 
 # Load the tweets
 # h = TweetLoader('HillaryClinton')
@@ -95,6 +98,20 @@ output_file("figures/pca_factors.html", title="PCA Loading Factors")
 show(p)
 
 # Examine via biplot
-mod.make_biplot(0, 3, max_arrow=0.2, save='figures/biplot_0_3.png', alpha=0.5)
-mod.make_biplot(4, 15, max_arrow=0.3, save='figures/biplot_4_15.png', alpha=0.5)
+mod.make_biplot(0, 3, max_arrow=0.2, save='figures/biplot_0_3.png', alpha=0.3, use_sns=True)
+mod.make_biplot(4, 15, max_arrow=0.3, save='figures/biplot_4_15.png', alpha=0.3, use_sns=True)
+mod.make_biplot(3-1, 4-1, 0.3, alpha=0.2, use_sns=True, save='figures/biplot_3_4.png')
+mod.make_biplot(5-1, 13-1, 0.3, alpha=0.3, use_sns=True)
 
+# Grid PCA plot with Seaborn
+data = mod.pcscores.iloc[:, 0:4]
+data = pd.concat([data, pd.Series(label_array, name='label')], axis=1)
+data = data.replace({'label': {0: 'Hillary Clinton', 1: 'Donald Trump'}})
+# Normalize range to -1 to 1
+for col in data.columns:
+    if col == 'label': continue
+    data[col] = data[col].apply(lambda x: x*1.0 / (data[col].max() - data[col].min()))
+# sns.set_style('whitegrid')
+g = sns.pairplot(data=data, hue='label', palette={'Hillary Clinton': 'blue', 'Donald Trump': 'red'},
+                 diag_kind='kde', plot_kws=dict(alpha=0.5))
+# sns.reset_orig()

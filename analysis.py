@@ -12,6 +12,10 @@ from sklearn.cross_validation import train_test_split
 from sklearn import svm, grid_search
 import matplotlib.pyplot as plt
 from math import sqrt
+import seaborn as sns
+
+# Set style for seaborn
+sns.set_style('whitegrid')
 
 # TODO: Look into adding some form of sentiment analysis
 class Analyzer:
@@ -207,13 +211,15 @@ class Analyzer:
 
         return cm
 
-    def make_biplot(self, xval=0, yval=1, max_arrow=0.2, save=False, alpha=0.6):
+    def make_biplot(self, xval=0, yval=1, max_arrow=0.2, save=False, alpha=0.4, use_sns=False):
         """
         Create a biplot of the PCA components
 
         :param xval: PCA component for the x-axis
         :param yval: PCA component for the y-axis
         :param max_arrow: Scaling to control how many arrows are plotted
+        :param save: Filename or False if no save needed
+        :param alpha: Transparency
         :return:
         """
 
@@ -222,38 +228,75 @@ class Analyzer:
             print('Run PCA first')
             return
 
-        plt.figure()
         n = self.loadings.shape[1]
         scalex = 1.0 / (self.pcscores.iloc[:, xval].max() - self.pcscores.iloc[:, xval].min())  # Rescaling to be from -1 to +1
         scaley = 1.0 / (self.pcscores.iloc[:, yval].max() - self.pcscores.iloc[:, yval].min())
 
-        if self.labels is not None:
-            plt.plot(self.pcscores.iloc[:, xval][self.labels == 0] * scalex, self.pcscores.iloc[:, yval][self.labels == 0] * scaley,
-                     'bo', alpha=alpha, label='Hillary Clinton')
-            plt.plot(self.pcscores.iloc[:, xval][self.labels == 1] * scalex, self.pcscores.iloc[:, yval][self.labels == 1] * scaley,
-                     'ro', alpha=alpha, label='Donald Trump')
+        if use_sns:
+            # Use seaborn
+            cut = 120
+            g = sns.JointGrid(x=self.pcscores.iloc[:, xval][self.labels == 0] * scalex,
+                              y=self.pcscores.iloc[:, yval][self.labels == 0] * scaley)
+            g.plot_joint(plt.scatter, c='blue', label='Hillary Clinton', alpha=alpha)
+            g.plot_marginals(sns.kdeplot, shade=True, color='blue', cut=cut)
+            # g.plot_marginals(sns.distplot, color='blue')
+
+            g.x = self.pcscores.iloc[:, xval][self.labels == 1] * scalex
+            g.y = self.pcscores.iloc[:, yval][self.labels == 1] * scaley
+            g.plot_joint(plt.scatter, c='red', label='Donald Trump', alpha=alpha)
+            plt.legend(loc='best')
+            g.plot_marginals(sns.kdeplot, shade=True, color='red', legend=False, cut=cut)
+            # g.plot_marginals(sns.distplot, color='red')
+
+            g.x, g.y = [], []
+            g.plot_joint(plt.scatter)
+
+            # Draw arrows
+            for i in range(n):
+                # Only plot the longer ones
+                length = sqrt(self.loadings.iloc[xval, i] ** 2 + self.loadings.iloc[yval, i] ** 2)
+                if length < max_arrow:
+                    continue
+
+                plt.arrow(0, 0, self.loadings.iloc[xval, i], self.loadings.iloc[yval, i], color='g', alpha=0.9)
+                plt.text(self.loadings.iloc[xval, i] * 1.15, self.loadings.iloc[yval, i] * 1.15,
+                         self.loadings.columns.tolist()[i], color='k', ha='center', va='center')
+
+            plt.xlim(-1, 1)
+            plt.ylim(-1, 1)
+            plt.xlabel('PC{}'.format(xval + 1))
+            plt.ylabel('PC{}'.format(yval + 1))
+            if save: g.savefig(save)
+            plt.show()
         else:
-            plt.plot(self.pcscores.iloc[:, xval] * scalex, self.pcscores.iloc[:, yval] * scaley,
-                     'bo', alpha=alpha)
+            plt.figure()
+            if self.labels is not None:
+                plt.plot(self.pcscores.iloc[:, xval][self.labels == 0] * scalex, self.pcscores.iloc[:, yval][self.labels == 0] * scaley,
+                         'bo', alpha=alpha, label='Hillary Clinton')
+                plt.plot(self.pcscores.iloc[:, xval][self.labels == 1] * scalex, self.pcscores.iloc[:, yval][self.labels == 1] * scaley,
+                         'ro', alpha=alpha, label='Donald Trump')
+            else:
+                plt.plot(self.pcscores.iloc[:, xval] * scalex, self.pcscores.iloc[:, yval] * scaley,
+                         'bo', alpha=alpha)
 
-        for i in range(n):
-            # Only plot the longer ones
-            length = sqrt(self.loadings.iloc[xval, i]**2 + self.loadings.iloc[yval, i]**2)
-            if length < max_arrow:
-                continue
+            for i in range(n):
+                # Only plot the longer ones
+                length = sqrt(self.loadings.iloc[xval, i]**2 + self.loadings.iloc[yval, i]**2)
+                if length < max_arrow:
+                    continue
 
-            plt.arrow(0, 0, self.loadings.iloc[xval, i], self.loadings.iloc[yval, i], color='g', alpha=0.5)
-            plt.text(self.loadings.iloc[xval, i] * 1.15, self.loadings.iloc[yval, i] * 1.15,
-                     self.loadings.columns.tolist()[i], color='k', ha='center', va='center')
+                plt.arrow(0, 0, self.loadings.iloc[xval, i], self.loadings.iloc[yval, i], color='g', alpha=0.9)
+                plt.text(self.loadings.iloc[xval, i] * 1.15, self.loadings.iloc[yval, i] * 1.15,
+                         self.loadings.columns.tolist()[i], color='k', ha='center', va='center')
 
-        plt.xlim(-1, 1)
-        plt.ylim(-1, 1)
-        plt.xlabel('PC{}'.format(xval+1))
-        plt.ylabel('PC{}'.format(yval+1))
-        if self.labels is not None: plt.legend(loc='best', numpoints=1)
-        plt.grid()
-        if save: plt.savefig(save)
-        plt.show()
+            plt.xlim(-1, 1)
+            plt.ylim(-1, 1)
+            plt.xlabel('PC{}'.format(xval+1))
+            plt.ylabel('PC{}'.format(yval+1))
+            if self.labels is not None: plt.legend(loc='best', numpoints=1)
+            plt.grid()
+            if save: plt.savefig(save)
+            plt.show()
 
 
 def pretty_cm(cm, label_names=['Hillary', 'Trump'], show_sum=False):
