@@ -98,10 +98,10 @@ output_file("figures/pca_factors.html", title="PCA Loading Factors")
 show(p)
 
 # Examine via biplot
-mod.make_biplot(0, 3, max_arrow=0.2, save='figures/biplot_0_3.png', alpha=0.3, use_sns=True)
+mod.make_biplot(0, 3, max_arrow=0.2, save='figures/biplot_0_3.png', alpha=0.3, use_sns=False)
 mod.make_biplot(4, 15, max_arrow=0.3, save='figures/biplot_4_15.png', alpha=0.3, use_sns=True)
 mod.make_biplot(3-1, 4-1, 0.3, alpha=0.2, use_sns=True, save='figures/biplot_3_4.png')
-mod.make_biplot(5-1, 13-1, 0.3, alpha=0.3, use_sns=True)
+mod.make_biplot(8-1, 16-1, 0.3, alpha=0.3, use_sns=True)
 
 # Examine individual tweets
 full_tweets.index = range(len(full_tweets))
@@ -121,3 +121,16 @@ for col in data.columns:
 g = sns.pairplot(data=data, hue='label', palette={'Hillary Clinton': 'blue', 'Donald Trump': 'red'},
                  diag_kind='kde', plot_kws=dict(alpha=0.5))
 # sns.reset_orig()
+
+# Loading factor Seaborn heatmap
+ax = sns.heatmap(loadings, center=0, linewidths=0.5, cmap="BrBG", vmin=-1, vmax=1)
+ax.set_xticklabels(ax.xaxis.get_majorticklabels(), rotation=90, fontsize=8)
+ax.set_yticklabels(ax.yaxis.get_majorticklabels(), rotation=0, fontsize=8)
+plt.savefig('figures/loadings.png')
+
+# Examine top words in a loading factor
+thresh = 0.1
+pc = 'PC1'
+for pc in loadings.columns.tolist():
+    print pc
+    print loadings[pc][loadings[pc]**2 > thresh]
