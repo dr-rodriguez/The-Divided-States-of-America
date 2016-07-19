@@ -103,6 +103,12 @@ mod.make_biplot(4, 15, max_arrow=0.3, save='figures/biplot_4_15.png', alpha=0.3,
 mod.make_biplot(3-1, 4-1, 0.3, alpha=0.2, use_sns=True, save='figures/biplot_3_4.png')
 mod.make_biplot(5-1, 13-1, 0.3, alpha=0.3, use_sns=True)
 
+# Examine individual tweets
+full_tweets.index = range(len(full_tweets))
+mod.pcscores.index = range(len(mod.pcscores))
+df = pd.concat([full_tweets, mod.pcscores], axis=1)
+df.sort_values(by='PC1', ascending=True).head()[['id','user.screen_name','PC1']]
+
 # Grid PCA plot with Seaborn
 data = mod.pcscores.iloc[:, 0:4]
 data = pd.concat([data, pd.Series(label_array, name='label')], axis=1)
