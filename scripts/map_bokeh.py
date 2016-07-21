@@ -132,7 +132,7 @@ output_file("figures/US_map_state.html")
 show(p)
 
 # Compare some tweets
-seed = 45
+seed = 30
 pd.set_option('max_colwidth', 200)
 print('Hillary Matches')
 print s.tweets[s.tweets['predict'] == 0]['text'].sample(5, random_state=seed)  # Hillary
@@ -146,7 +146,7 @@ pd.reset_option('max_colwidth')
 
 # Checking most prolific tweeters
 print('Most prolific tweeters:')
-df_full[['count', 'mean', 'predict']]\
+print df_full[['count', 'mean', 'predict']]\
     .replace({'predict': {0: 'Hillary', 1: 'Trump'}})\
     .sort_values(by='count', ascending=False)\
     .head(5)

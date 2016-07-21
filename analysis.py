@@ -178,9 +178,9 @@ class Analyzer:
                 data = self.pcscores
             df_train, df_test, train_label, test_label = train_test_split(data, self.labels,
                                                                           test_size=0.2, random_state=42)
-            parameters = {'kernel': ['linear', 'rbf'], 'C': [0.01, 0.1, 1, 10, 100]}
+            parameters = {'kernel': ['rbf'], 'C': [0.01, 0.1, 1, 10, 100], 'gamma': [1e-3, 1e-2, 1e-1, 1e0, 1e1]}
             svr = svm.SVC()
-            clf = grid_search.GridSearchCV(svr, parameters, cv=5, error_score=0)
+            clf = grid_search.GridSearchCV(svr, parameters, cv=5, error_score=0, verbose=1)
             clf.fit(df_train, train_label)
             print('Best parameters: {}'.format(clf.best_params_))
             prediction = clf.predict(df_test)
