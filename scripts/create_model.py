@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 import os
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 # Some global defaults
 max_words = 200
@@ -42,7 +43,13 @@ test_predict, test_label = mod.create_full_model()
 # mod.make_biplot(2, 3, max_arrow=0.2)
 
 # Check results
-cm = mod.make_confusion_matrix(test_label, test_predict, normalize=False, axis=0, label_names=['Hillary', 'Trump'])
+cm = mod.make_confusion_matrix(test_label, test_predict, normalize=False, axis=0, label_names=['Clinton', 'Trump'])
+
+# Heatmap plot
+sns.heatmap(cm, square=True, xticklabels=['Hillary Clinton', 'Donald Trump'], annot=True, fmt="d",
+            yticklabels=['Hillary Clinton', 'Donald Trump'], cbar=True, cbar_kws={"orientation": "vertical"}, cmap="BuGn")\
+    .set(xlabel="Predicted Class", ylabel="Actual Class")
+plt.savefig('figures/confusion_matrix.png')
 
 # Save model results
 os.system('rm model/*')  # Clear the prior models first
